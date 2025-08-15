@@ -1,6 +1,9 @@
 package src
 
 import (
+	azureclient "app/azureClient"
+	"app/constants"
+
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -23,10 +26,11 @@ func preflight() {
 
 func ActivatePim(opts ActivationOptions) {
 	preflight()
-	pw, err := playwright.Run()
-	if err != nil {
-		panic("could not start Playwright: " + err.Error())
-	}
-
-	pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{})
+	azureclient.GetPimToken(azureclient.PimOptions{
+		Headless:        false,
+		AppMode:         true,
+		KioskMode:       true,
+		PreserveSession: true,
+		AzurePortalURL:  constants.AZURE_PORTAL_URL,
+	})
 }
