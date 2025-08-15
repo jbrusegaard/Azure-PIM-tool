@@ -71,6 +71,14 @@ func GetPimToken(opts PimOptions) {
 
 	// Need to wait for user to auth and then go to the azure portal home page
 	page.WaitForURL(opts.AzurePortalURL + "#home")
+	time.Sleep(30 * time.Second)
+
+	// Get session storage
+	sessionStorageData, err := page.Evaluate("() => JSON.stringify(sessionStorage)")
+	if err != nil {
+		// Handle error
+	}
+	fmt.Printf("Session Storage: %s\n", sessionStorageData)
 
 	time.Sleep(2 * time.Minute)
 
