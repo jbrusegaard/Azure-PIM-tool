@@ -1,4 +1,4 @@
-package azureclient
+package src
 
 type AzureClient struct {
 	AccessToken string

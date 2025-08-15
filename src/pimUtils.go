@@ -1,7 +1,7 @@
-package azureclient
+package src
 
 import (
-	"fmt"
+	"encoding/json"
 	"time"
 
 	"github.com/playwright-community/playwright-go"
@@ -15,15 +15,7 @@ type PimOptions struct {
 	AzurePortalURL  string
 }
 
-// Use playwright to get the pim token
-// user will need to login using the launched browser
-// then get the pim token
-// then return the pim token
-// then use the pim token to get the pim data
-// then return the pim data
-// then use the pim data to get the pim data
-// then return the pim data
-func GetPimToken(opts PimOptions) {
+func GetBrowserAndPage(appSettings AppSettings, opts PimOptions) {
 
 	pw, err := playwright.Run(
 		&playwright.RunOptions{
@@ -70,17 +62,40 @@ func GetPimToken(opts PimOptions) {
 	page.Goto(opts.AzurePortalURL)
 
 	// Need to wait for user to auth and then go to the azure portal home page
-	page.WaitForURL(opts.AzurePortalURL + "#home")
-	time.Sleep(30 * time.Second)
-
-	// Get session storage
-	sessionStorageData, err := page.Evaluate("() => JSON.stringify(sessionStorage)")
-	if err != nil {
-		// Handle error
+	page.WaitForURL(opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{
+		Timeout: playwright.Float(float64(5 * time.Minute)),
+	})
+	sessionData := CaptureSessionData(page)
+	for _, session := range sessionData {
+		var apt AzurePimToken
+		err := json.Unmarshal([]byte(session), &apt)
+		if err != nil {
+			continue
+		}
+		if apt.TokenType == "Bearer" && apt.CredentialType == "AccessToken" && apt.Secret != "" {
+			appSettings.SavePIMToken(apt)
+			break
+		}
 	}
-	fmt.Printf("Session Storage: %s\n", sessionStorageData)
+}
 
-	time.Sleep(2 * time.Minute)
+func CaptureSessionData(page playwright.Page) map[string]string {
+	// Get session storage
+	// TODO fix this function
+	sessionStorageData, err := page.Evaluate("() => sessionStorage")
+	if err != nil {
+		return make(map[string]string)
+	}
+	return sessionStorageData.(map[string]string)
+}
 
-	fmt.Print("we finished")
+func RestoreSessionData(sessionData string, page playwright.Page) {
+	expression := `
+	(data) => {
+		const dataParsed = JSON.parse(data)
+		for(const key in dataParsed) {
+			sessionStorage.setItem(key)
+		}
+	}`
+	page.Evaluate(expression, sessionData)
 }
