@@ -12,10 +12,9 @@ import (
 )
 
 type ActivationOptions struct {
-	Reason         string
-	Duration       int    // Duration in hours
-	ActivationType string // Type of activation, e.g., "group", "resource", "role"
-	Filter         string // Filter criteria for activation
+	Reason    string
+	Duration  int    // Duration in hours
+	GroupName string // Filter criteria for activation
 }
 
 func preflight() {
@@ -67,10 +66,10 @@ func ActivatePim(opts ActivationOptions) {
 	if len(eligibleRoleMap) == 0 {
 		fmt.Println("No eligible roles found.")
 	}
-	roleToActivate, found := eligibleRoleMap[opts.Filter]
+	roleToActivate, found := eligibleRoleMap[opts.GroupName]
 
 	if !found {
-		fmt.Println("No eligible group found with the specified filter:", opts.Filter)
+		fmt.Println("No eligible group found with the specified name:", opts.GroupName)
 		return
 	}
 

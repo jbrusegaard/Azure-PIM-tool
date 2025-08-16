@@ -5,24 +5,21 @@ package cmd
 
 import (
 	"app/src"
-	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
 var activateC = &cobra.Command{
-	Use:   "activate <type> <filter>",
-	Short: "Activate PIM for groups, resources, or roles",
-	Long:  `Activate PIM for groups, resources, or roles`,
+	Use:   "activate <groupName>",
+	Short: "Activate PIM for groups",
+	Long:  `Activate PIM for groups`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("activate called")
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
 		opts := src.ActivationOptions{
-			Reason:         reason,
-			Duration:       duration,
-			ActivationType: args[0], // type of activation, e.g., "group", "resource", "role"
-			Filter:         args[1], // filter criteria for activation
+			Reason:    reason,
+			Duration:  duration,
+			GroupName: args[0], // filter criteria for activation
 		}
 		src.ActivatePim(opts)
 	},
