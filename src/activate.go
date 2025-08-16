@@ -1,6 +1,7 @@
 package src
 
 import (
+	"app/azuClient"
 	"app/constants"
 	"fmt"
 	"strconv"
@@ -47,6 +48,15 @@ func ActivatePim(opts ActivationOptions) {
 		)
 		appSettings = Initialize()
 	}
+
+	azureClient := azuClient.AzureClient{
+		AzurePimToken: appSettings.Session.AZPimToken,
+	}
+	res, err := azureClient.GetEligibleRoles(constants.AZURE_PIM_GROUP_API_URL_ROLE_ASSIGNMENTS)
+	if err != nil {
+		panic("Failed to get eligible roles: " + err.Error())
+	}
+	fmt.Println("Eligible roles:", res)
 
 	fmt.Println("YAY WE DID IT!!!")
 
