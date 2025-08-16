@@ -63,6 +63,11 @@ func ActivatePim(opts ActivationOptions) {
 	if err != nil {
 		panic("Failed to unmarshal eligible roles: " + err.Error())
 	}
+	fmt.Println(azuClient.DisplayEligibleRoles(eligibleRoles))
+	eligibleRolesObj := azuClient.ComputeEligibleRoles(eligibleRoles)
+	if len(eligibleRolesObj) == 0 {
+		fmt.Println("No eligible roles found.")
+	}
 
 	fmt.Println("Eligible roles:", eligibleRoles)
 
