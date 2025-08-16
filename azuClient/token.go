@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type AzurePimToken struct {
@@ -20,19 +18,16 @@ type AzurePimToken struct {
 	Target         string `json:"target"`
 	Environment    string `json:"environment"`
 	SubjectID      string `json:"subjectId"`
+	Email          string `json:"email"`
 }
 
 // AzureClaims represents the claims structure for Azure JWT tokens
 type AzureClaims struct {
-	Subject    string `json:"sub"`         // Standard JWT subject identifier
-	ObjectID   string `json:"oid"`         // Azure Object ID (may not always be present)
-	Email      string `json:"email"`       // User email
-	UniqueName string `json:"unique_name"` // Unique user identifier
-	TenantID   string `json:"tid"`         // Azure Tenant ID
-	jwt.StandardClaims
+	ObjectID string `json:"oid"`   // Azure Object ID (may not always be present)
+	Email    string `json:"email"` // User email
 }
 
-func (apt *AzurePimToken) ComputeSubjectID() error {
+func (apt *AzurePimToken) ComputeAdditionalFields() error {
 	if apt.SubjectID != "" {
 		return nil
 	}
@@ -61,52 +56,13 @@ func (apt *AzurePimToken) ComputeSubjectID() error {
 	if err != nil {
 		return fmt.Errorf("failed to decode JWT payload: %v", err)
 	}
-
-	// Debug: Print the raw payload to see what's in the JWT
-	fmt.Println("Raw JWT payload:", string(decodedPayload))
-
-	// Parse the JSON claims into a generic map first to see all fields
-	var rawClaims map[string]interface{}
-	if err := json.Unmarshal(decodedPayload, &rawClaims); err != nil {
-		return fmt.Errorf("failed to unmarshal JWT claims: %v", err)
-	}
-
-	// Debug: Print all available claims
-	fmt.Println("Available claims:")
-	for key, value := range rawClaims {
-		fmt.Printf("  %s: %v\n", key, value)
-	}
-
 	// Parse into our custom claims structure
 	var claims AzureClaims
 	if err := json.Unmarshal(decodedPayload, &claims); err != nil {
 		return fmt.Errorf("failed to unmarshal JWT claims: %v", err)
 	}
 
-	// Debug: Check what we got in our claims struct
-	fmt.Printf("AzureClaims - Subject: '%s', ObjectID: '%s', Email: '%s', UniqueName: '%s'\n",
-		claims.Subject, claims.ObjectID, claims.Email, claims.UniqueName)
-
-	// Use the Subject field (sub) as the primary SubjectID
-	if claims.Subject != "" {
-		apt.SubjectID = claims.Subject
-		fmt.Println("Using 'sub' field as SubjectID:", claims.Subject)
-	} else if claims.ObjectID != "" {
-		// Fallback to ObjectID if available
-		apt.SubjectID = claims.ObjectID
-		fmt.Println("Using 'oid' field as SubjectID:", claims.ObjectID)
-	} else if claims.Email != "" {
-		// Fallback to email
-		apt.SubjectID = claims.Email
-		fmt.Println("Using 'email' field as SubjectID:", claims.Email)
-	} else if claims.UniqueName != "" {
-		// Fallback to unique name
-		apt.SubjectID = claims.UniqueName
-		fmt.Println("Using 'unique_name' field as SubjectID:", claims.UniqueName)
-	} else {
-		return fmt.Errorf("no suitable subject identifier found in JWT claims")
-	}
-
-	fmt.Println("Final SubjectID:", apt.SubjectID)
+	apt.SubjectID = claims.ObjectID
+	apt.Email = claims.Email
 	return nil
 }
