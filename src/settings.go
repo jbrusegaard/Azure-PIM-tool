@@ -46,5 +46,9 @@ func Initialize() AppSettings {
 	sessionConfig := GetSessionConfig(appSettings.ConfigFile)
 	appSettings.Session = sessionConfig
 
+	err := appSettings.Session.AZPimToken.ComputeSubjectID()
+	if err != nil {
+		panic("Failed to compute SubjectID: " + err.Error())
+	}
 	return appSettings
 }
