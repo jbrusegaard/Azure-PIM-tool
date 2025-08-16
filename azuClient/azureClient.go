@@ -14,10 +14,10 @@ type AzureClient struct {
 }
 
 type PimRequestSchedule struct {
-	Type          string `json:"type"`
-	StartDateTime string `json:"startDateTime"`
-	EndDateTime   string `json:"endDateTime"`
-	Duration      string `json:"duration"`
+	Type          string  `json:"type"`
+	StartDateTime *string `json:"startDateTime"`
+	EndDateTime   *string `json:"endDateTime"`
+	Duration      string  `json:"duration"`
 }
 
 type AzurePimRequestBody struct {
@@ -43,8 +43,8 @@ func getPimRequestSchedule(durationHours int) PimRequestSchedule {
 	durationMinutes := durationHours * 60
 	return PimRequestSchedule{
 		Type:          "Once",
-		StartDateTime: "",
-		EndDateTime:   "",
+		StartDateTime: nil,
+		EndDateTime:   nil,
 		Duration:      fmt.Sprintf("PT%dM", durationMinutes),
 	}
 }
@@ -90,7 +90,7 @@ func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + a.AzurePimToken.Secret,
 		"Content-Type":  "application/json",
-		"Accept":        "application/json",
+		"Accept":        "*/*",
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)

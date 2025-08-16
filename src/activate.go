@@ -77,7 +77,7 @@ func ActivatePim(opts ActivationOptions) {
 	fmt.Println("Activating role:", roleToActivate.RoleDefinition.Resource.DisplayName)
 	requestBody := azuClient.BuildPimRequestBody(
 		roleToActivate,
-		azureClient.AzurePimToken.SubjectID,
+		roleToActivate.Subject.Id,
 		opts.Reason,
 		opts.Duration,
 	)
