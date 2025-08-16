@@ -46,11 +46,11 @@ func DisplayEligibleRoles(roles AzureGroupResponseList) string {
 	return result
 }
 
-func ComputeEligibleRoles(roles AzureGroupResponseList) []AzureGroupResponse {
-	var eligibleRoles []AzureGroupResponse
+func ComputeEligibleRoles(roles AzureGroupResponseList) map[string]AzureGroupResponse {
+	eligibleRoles := make(map[string]AzureGroupResponse)
 	for _, role := range roles.Value {
 		if role.Subject.Id != "" && role.RoleDefinition.Resource.DisplayName != "" {
-			eligibleRoles = append(eligibleRoles, role)
+			eligibleRoles[role.RoleDefinition.Resource.DisplayName] = role
 		}
 	}
 	return eligibleRoles

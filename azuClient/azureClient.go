@@ -82,7 +82,7 @@ func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
 	req_url, err := url.Parse(base_url)
 	req_url.RawQuery = params.Encode()
 
-	req, err := http.NewRequest("GET", req_url.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, req_url.String(), nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
@@ -117,13 +117,15 @@ func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
 	return string(resBody), nil
 }
 
-func (a *AzureClient) MakePIMRequest(url string, body AzurePimRequestBody) (string, error) {
+func (a *AzureClient) Activate(url string, body AzurePimRequestBody) (string, error) {
 	payload, err := json.Marshal(body)
 	if err != nil {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload)) // Replace nil with actual request body if needed
+	req, err := http.NewRequest(
+		http.MethodPost, url, bytes.NewBuffer(payload),
+	)
 	headers := map[string]string{
 		"Authorization": "Bearer " + a.AzurePimToken.Secret,
 		"Content-Type":  "application/json",

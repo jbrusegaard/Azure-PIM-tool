@@ -63,13 +63,31 @@ func ActivatePim(opts ActivationOptions) {
 	if err != nil {
 		panic("Failed to unmarshal eligible roles: " + err.Error())
 	}
-	fmt.Println(azuClient.DisplayEligibleRoles(eligibleRoles))
-	eligibleRolesObj := azuClient.ComputeEligibleRoles(eligibleRoles)
-	if len(eligibleRolesObj) == 0 {
+	eligibleRoleMap := azuClient.ComputeEligibleRoles(eligibleRoles)
+	if len(eligibleRoleMap) == 0 {
 		fmt.Println("No eligible roles found.")
 	}
+	roleToActivate, found := eligibleRoleMap[opts.Filter]
 
-	fmt.Println("Eligible roles:", eligibleRoles)
+	if !found {
+		fmt.Println("No eligible group found with the specified filter:", opts.Filter)
+		return
+	}
+
+	fmt.Println("Activating role:", roleToActivate.RoleDefinition.Resource.DisplayName)
+	requestBody := azuClient.BuildPimRequestBody(
+		roleToActivate.RoleDefinitionId,
+		roleToActivate.ResourceId,
+		azureClient.AzurePimToken.SubjectID,
+		opts.Reason,
+		roleToActivate.Id,
+		opts.Duration,
+	)
+	resp, err := azureClient.Activate(constants.AZURE_PIM_GROUP_API_URL_ROLE_ASSIGMENT_REQUESTS, requestBody)
+	if err != nil {
+		panic("Failed to activate role: " + err.Error())
+	}
+	fmt.Println("Activation response:", resp)
 
 	fmt.Println("YAY WE DID IT!!!")
 
