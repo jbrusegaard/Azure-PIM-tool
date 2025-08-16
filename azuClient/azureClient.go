@@ -77,10 +77,10 @@ func (a *AzureClient) SetToken(token AzurePimToken) {
 
 func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
 	params := url.Values{}
-	params.Add("$filter", "(subject/id eq '"+a.AzurePimToken.ClientID+"') and (assignmentState eq 'Eligible')")
+	params.Add("$filter", "(subject/id eq '"+a.AzurePimToken.SubjectID+"') and (assignmentState eq 'Eligible')")
 	params.Add("$expand", "linkedEligibleRoleAssignment,subject,scopedResource,roleDefinition($expand=resource)")
 	req_url, err := url.Parse(base_url)
-	// req_url.RawQuery = params.Encode()
+	req_url.RawQuery = params.Encode()
 
 	req, err := http.NewRequest("GET", req_url.String(), nil)
 	if err != nil {
