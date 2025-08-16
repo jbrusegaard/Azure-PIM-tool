@@ -1,6 +1,7 @@
 package src
 
 import (
+	"app/azuClient"
 	"encoding/json"
 	"time"
 
@@ -71,7 +72,7 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 	)
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
-		var apt AzurePimToken
+		var apt azuClient.AzurePimToken
 		err := json.Unmarshal([]byte(session), &apt)
 		if err != nil {
 			continue

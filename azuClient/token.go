@@ -1,4 +1,4 @@
-package src
+package azuClient
 
 type AzurePimToken struct {
 	CredentialType string `json:"credentialType"`

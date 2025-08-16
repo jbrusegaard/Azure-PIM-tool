@@ -1,6 +1,7 @@
 package src
 
 import (
+	"app/azuClient"
 	"encoding/json"
 	"os"
 
@@ -9,7 +10,7 @@ import (
 
 type SessionConfig struct {
 	// SessionData map[string]string
-	AZPimToken AzurePimToken
+	AZPimToken azuClient.AzurePimToken
 }
 
 func GetSessionConfig(filename string) SessionConfig {

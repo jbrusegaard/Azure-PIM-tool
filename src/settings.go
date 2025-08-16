@@ -1,6 +1,7 @@
 package src
 
 import (
+	"app/azuClient"
 	"os"
 	"path/filepath"
 )
@@ -17,15 +18,15 @@ func (a *AppSettings) SaveSettings() {
 	}
 }
 
-func (a *AppSettings) SavePIMToken(token AzurePimToken) {
+func (a *AppSettings) SavePIMToken(token azuClient.AzurePimToken) {
 	a.Session.AZPimToken = token
 	a.SaveSettings()
 }
 
-//func (a *AppSettings) SaveSessionData(sessionData string, url string) {
+// func (a *AppSettings) SaveSessionData(sessionData string, url string) {
 //	a.Session.SessionData[url] = sessionData
 //	a.SaveSettings()
-//}
+// }
 
 func buildFilePath(filename string) string {
 	home, err := os.UserHomeDir()

@@ -47,6 +47,7 @@ func ActivatePim(opts ActivationOptions) {
 		)
 		appSettings = Initialize()
 	}
+
 	fmt.Println("YAY WE DID IT!!!")
 
 }
