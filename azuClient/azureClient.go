@@ -50,14 +50,14 @@ func getPimRequestSchedule(durationHours int) PimRequestSchedule {
 }
 
 func BuildPimRequestBody(
-	roleDefinitionID, resourceID, subjectID, reason, linkedEligibleRoleAssignmentID string, durationHours int,
+	role AzureGroupResponse, subjectID string, reason string, durationHours int,
 ) AzurePimRequestBody {
 	return AzurePimRequestBody{
-		RoleDefinitionID:               roleDefinitionID,
-		ResourceID:                     resourceID,
+		RoleDefinitionID:               role.RoleDefinitionId,
+		ResourceID:                     role.ResourceId,
 		SubjectID:                      subjectID,
 		Reason:                         reason,
-		LinkedEligibleRoleAssignmentID: linkedEligibleRoleAssignmentID,
+		LinkedEligibleRoleAssignmentID: role.Id,
 		Schedule:                       getPimRequestSchedule(durationHours),
 		AssignmentState:                "Active",
 		Type:                           "UserAdd",
