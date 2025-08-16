@@ -44,7 +44,7 @@ func ActivatePim(opts ActivationOptions) {
 				AppMode:         true,
 				KioskMode:       true,
 				PreserveSession: true,
-				AzurePortalURL:  constants.AZURE_PORTAL_URL,
+				AzurePortalURL:  constants.AzurePortalUrl,
 			},
 		)
 		appSettings = Initialize()
@@ -54,7 +54,7 @@ func ActivatePim(opts ActivationOptions) {
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
 
-	res, err := azureClient.GetEligibleRoles(constants.AZURE_PIM_GROUP_API_URL_ROLE_ASSIGNMENTS)
+	res, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
 	if err != nil {
 		panic("Failed to get eligible roles: " + err.Error())
 	}
@@ -81,7 +81,7 @@ func ActivatePim(opts ActivationOptions) {
 		opts.Reason,
 		opts.Duration,
 	)
-	resp, err := azureClient.Activate(constants.AZURE_PIM_GROUP_API_URL_ROLE_ASSIGMENT_REQUESTS, requestBody)
+	resp, err := azureClient.Activate(constants.AzurePimGroupApiUrlRoleAssigmentRequests, requestBody)
 	if err != nil {
 		panic("Failed to activate role: " + err.Error())
 	}
