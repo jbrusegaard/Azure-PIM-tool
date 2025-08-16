@@ -3,6 +3,7 @@ package src
 import (
 	"app/azuClient"
 	"app/constants"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -57,7 +58,13 @@ func ActivatePim(opts ActivationOptions) {
 	if err != nil {
 		panic("Failed to get eligible roles: " + err.Error())
 	}
-	fmt.Println("Eligible roles:", res)
+	var eligibleRoles azuClient.AzureGroupResponseList
+	err = json.Unmarshal([]byte(res), &eligibleRoles)
+	if err != nil {
+		panic("Failed to unmarshal eligible roles: " + err.Error())
+	}
+
+	fmt.Println("Eligible roles:", eligibleRoles)
 
 	fmt.Println("YAY WE DID IT!!!")
 
