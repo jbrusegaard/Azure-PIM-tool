@@ -36,13 +36,15 @@ func ActivatePim(opts ActivationOptions) {
 	}
 	if now > int64(expiresOn) {
 		fmt.Println("ActivatePim: Token expired")
-		GetBrowserAndPage(appSettings, PimOptions{
-			Headless:        false,
-			AppMode:         true,
-			KioskMode:       true,
-			PreserveSession: true,
-			AzurePortalURL:  constants.AZURE_PORTAL_URL,
-		})
+		LaunchBrowserToGetToken(
+			appSettings, PimOptions{
+				Headless:        false,
+				AppMode:         true,
+				KioskMode:       true,
+				PreserveSession: true,
+				AzurePortalURL:  constants.AZURE_PORTAL_URL,
+			},
+		)
 		appSettings = Initialize()
 	}
 	fmt.Println("YAY WE DID IT!!!")

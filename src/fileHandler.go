@@ -8,7 +8,7 @@ import (
 )
 
 type SessionConfig struct {
-	//SessionData map[string]string
+	// SessionData map[string]string
 	AZPimToken AzurePimToken
 }
 
@@ -22,9 +22,6 @@ func GetSessionConfig(filename string) SessionConfig {
 	if err != nil {
 		return SessionConfig{}
 	}
-	//if sessionConfig.SessionData == nil {
-	//	sessionConfig.SessionData = make(map[string]string)
-	//}
 	return sessionConfig
 }
 

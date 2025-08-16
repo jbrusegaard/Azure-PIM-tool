@@ -15,7 +15,7 @@ type PimOptions struct {
 	AzurePortalURL  string
 }
 
-func GetBrowserAndPage(appSettings AppSettings, opts PimOptions) {
+func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 
 	pw, err := playwright.Run(
 		&playwright.RunOptions{
@@ -45,10 +45,12 @@ func GetBrowserAndPage(appSettings AppSettings, opts PimOptions) {
 		args = append(args, "--kiosk")
 	}
 
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: &opts.Headless,
-		Args:     args,
-	})
+	browser, err := pw.Chromium.Launch(
+		playwright.BrowserTypeLaunchOptions{
+			Headless: &opts.Headless,
+			Args:     args,
+		},
+	)
 	if err != nil {
 		panic("could not launch browser: " + err.Error())
 	}
@@ -62,9 +64,11 @@ func GetBrowserAndPage(appSettings AppSettings, opts PimOptions) {
 	page.Goto(opts.AzurePortalURL)
 
 	// Need to wait for user to auth and then go to the azure portal home page
-	page.WaitForURL(opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{
-		Timeout: playwright.Float(float64(5 * time.Minute)),
-	})
+	page.WaitForURL(
+		opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{
+			Timeout: playwright.Float(float64(5 * time.Minute)),
+		},
+	)
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
 		var apt AzurePimToken
@@ -80,13 +84,32 @@ func GetBrowserAndPage(appSettings AppSettings, opts PimOptions) {
 }
 
 func CaptureSessionData(page playwright.Page) map[string]string {
-	// Get session storage
-	// TODO fix this function
-	sessionStorageData, err := page.Evaluate("() => sessionStorage")
+	sessionStorageData, err := page.Evaluate(
+		`() => {
+		const storage = {};
+		for (let i = 0; i < sessionStorage.length; i++) {
+			const key = sessionStorage.key(i);
+			storage[key] = sessionStorage.getItem(key);
+		}
+		return storage;
+	}`,
+	)
 	if err != nil {
 		return make(map[string]string)
 	}
-	return sessionStorageData.(map[string]string)
+
+	// Convert the interface{} to map[string]interface{} first, then to map[string]string
+	if storageMap, ok := sessionStorageData.(map[string]any); ok {
+		result := make(map[string]string)
+		for key, value := range storageMap {
+			if strValue, ok := value.(string); ok {
+				result[key] = strValue
+			}
+		}
+		return result
+	}
+
+	return make(map[string]string)
 }
 
 func RestoreSessionData(sessionData string, page playwright.Page) {
