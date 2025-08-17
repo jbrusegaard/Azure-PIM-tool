@@ -23,7 +23,7 @@ var activateC = &cobra.Command{
 		}
 		src.ActivatePim(opts)
 	},
-	Args: cobra.ExactArgs(2),
+	Args: cobra.ExactArgs(1),
 }
 
 func init() {
