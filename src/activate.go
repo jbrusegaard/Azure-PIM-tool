@@ -52,6 +52,7 @@ func ActivatePim(opts ActivationOptions) {
 		} else {
 			log.Error(err.Error())
 		}
+		return
 	}
 	log.Infof("Successfully activated role: %s!\n", roleToActivate.GetGroupName())
 }
