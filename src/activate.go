@@ -4,6 +4,8 @@ import (
 	"app/azuClient"
 	"app/constants"
 	"fmt"
+
+	"github.com/charmbracelet/log"
 )
 
 type ActivationOptions struct {
@@ -36,12 +38,8 @@ func ActivatePim(opts ActivationOptions) {
 		opts.Reason,
 		opts.Duration,
 	)
-	resp, err := azureClient.Activate(constants.AzurePimGroupApiUrlRoleAssigmentRequests, requestBody)
+	_, err = azureClient.Activate(constants.AzurePimGroupApiUrlRoleAssigmentRequests, requestBody)
 	if err != nil {
-		panic("Failed to activate role: " + err.Error())
+		log.Error(err.Error())
 	}
-	fmt.Println("Activation response:", resp)
-
-	fmt.Println("YAY WE DID IT!!!")
-
 }

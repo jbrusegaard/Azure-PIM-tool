@@ -3,7 +3,6 @@ package src
 import (
 	"app/azuClient"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/playwright-community/playwright-go"
@@ -79,8 +78,6 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 			continue
 		}
 		if apt.TokenType == "Bearer" && apt.CredentialType == "AccessToken" && apt.Secret != "" {
-			fmt.Println("Found PIM token in session storage")
-			fmt.Println(session)
 			appSettings.SavePIMToken(apt)
 			break
 		}

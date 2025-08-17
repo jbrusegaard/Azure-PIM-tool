@@ -158,7 +158,7 @@ func (a *AzureClient) Activate(url string, body AzurePimRequestBody) (string, er
 
 	// Check for HTTP errors
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(resBody))
+		return string(resBody), fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(resBody))
 	}
 	return string(resBody), err
 }
