@@ -2,8 +2,14 @@ package src
 
 import (
 	"app/azuClient"
+	"app/constants"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/charmbracelet/log"
+	"github.com/playwright-community/playwright-go"
 )
 
 type AppSettings struct {
@@ -36,8 +42,7 @@ func buildFilePath(filename string) string {
 	return home + "/.ezpim/" + filename
 }
 
-func Initialize() AppSettings {
-
+func loadSessionFromFile() AppSettings {
 	appSettings := AppSettings{
 		ConfigFile: buildFilePath("config.json"),
 	}
@@ -46,9 +51,45 @@ func Initialize() AppSettings {
 	sessionConfig := GetSessionConfig(appSettings.ConfigFile)
 	appSettings.Session = sessionConfig
 
-	err := appSettings.Session.AZPimToken.ComputeAdditionalFields()
+	return appSettings
+}
+
+func preflight() {
+	// check if playwright is installed
+	if _, err := playwright.Run(); err != nil {
+		iErr := playwright.Install(&playwright.RunOptions{Browsers: []string{"chromium"}})
+		if iErr != nil {
+			panic("Failed to install Playwright: " + iErr.Error())
+		}
+	}
+}
+
+func Initialize() AppSettings {
+	preflight()
+	appSettings := loadSessionFromFile()
+	now := time.Now().Unix()
+	expiresOn, err := strconv.Atoi(appSettings.Session.AZPimToken.ExpiresOn)
+	if err != nil {
+		expiresOn = 0
+	}
+	if now > int64(expiresOn) {
+		log.Info("Token expired. Please login to get new token")
+		LaunchBrowserToGetToken(
+			appSettings, PimOptions{
+				Headless:        false,
+				AppMode:         true,
+				KioskMode:       true,
+				PreserveSession: true,
+				AzurePortalURL:  constants.AzurePortalUrl,
+			},
+		)
+		appSettings = loadSessionFromFile()
+	}
+
+	err = appSettings.Session.AZPimToken.ComputeAdditionalFields()
 	if err != nil {
 		panic("Failed to compute SubjectID: " + err.Error())
 	}
+
 	return appSettings
 }

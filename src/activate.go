@@ -3,12 +3,7 @@ package src
 import (
 	"app/azuClient"
 	"app/constants"
-	"encoding/json"
 	"fmt"
-	"strconv"
-	"time"
-
-	"github.com/playwright-community/playwright-go"
 )
 
 type ActivationOptions struct {
@@ -17,52 +12,13 @@ type ActivationOptions struct {
 	GroupName string // Filter criteria for activation
 }
 
-func preflight() {
-	// check if playwright is installed
-	if _, err := playwright.Run(); err != nil {
-		iErr := playwright.Install(&playwright.RunOptions{Browsers: []string{"chromium"}})
-		if iErr != nil {
-			panic("Failed to install Playwright: " + iErr.Error())
-		}
-	}
-}
-
 func ActivatePim(opts ActivationOptions) {
-	preflight()
 	appSettings := Initialize()
-	now := time.Now().Unix()
-	expiresOn, err := strconv.Atoi(appSettings.Session.AZPimToken.ExpiresOn)
-	if err != nil {
-		expiresOn = 0
-	}
-	if now > int64(expiresOn) {
-		fmt.Println("ActivatePim: Token expired")
-		LaunchBrowserToGetToken(
-			appSettings, PimOptions{
-				Headless:        false,
-				AppMode:         true,
-				KioskMode:       true,
-				PreserveSession: true,
-				AzurePortalURL:  constants.AzurePortalUrl,
-			},
-		)
-		appSettings = Initialize()
-	}
-
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
+	eligibleRoleMap, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
 
-	res, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
-	if err != nil {
-		panic("Failed to get eligible roles: " + err.Error())
-	}
-	var eligibleRoles azuClient.AzureGroupResponseList
-	err = json.Unmarshal([]byte(res), &eligibleRoles)
-	if err != nil {
-		panic("Failed to unmarshal eligible roles: " + err.Error())
-	}
-	eligibleRoleMap := azuClient.ComputeEligibleRoles(eligibleRoles)
 	if len(eligibleRoleMap) == 0 {
 		fmt.Println("No eligible roles found.")
 	}
@@ -73,7 +29,7 @@ func ActivatePim(opts ActivationOptions) {
 		return
 	}
 
-	fmt.Println("Activating role:", roleToActivate.RoleDefinition.Resource.DisplayName)
+	fmt.Println("Activating role:", roleToActivate.GetGroupName())
 	requestBody := azuClient.BuildPimRequestBody(
 		roleToActivate,
 		roleToActivate.Subject.Id,

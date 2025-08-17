@@ -75,16 +75,16 @@ func (a *AzureClient) SetToken(token AzurePimToken) {
 	a.AzurePimToken = token
 }
 
-func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
+func (a *AzureClient) GetEligibleRoles(baseUrl string) (map[string]AzureGroupResponse, error) {
 	params := url.Values{}
 	params.Add("$filter", "(subject/id eq '"+a.AzurePimToken.SubjectID+"') and (assignmentState eq 'Eligible')")
 	params.Add("$expand", "linkedEligibleRoleAssignment,subject,scopedResource,roleDefinition($expand=resource)")
-	req_url, err := url.Parse(base_url)
-	req_url.RawQuery = params.Encode()
+	reqUrl, err := url.Parse(baseUrl)
+	reqUrl.RawQuery = params.Encode()
 
-	req, err := http.NewRequest(http.MethodGet, req_url.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	headers := map[string]string{
@@ -100,21 +100,29 @@ func (a *AzureClient) GetEligibleRoles(base_url string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to make request: %w", err)
+		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Read response
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
+		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
 	// Check for HTTP errors
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(resBody))
+		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(resBody))
 	}
-	return string(resBody), nil
+
+	var eligibleRoles AzureGroupResponseList
+	err = json.Unmarshal(resBody, &eligibleRoles)
+	if err != nil {
+		panic("Failed to unmarshal eligible roles: " + err.Error())
+	}
+	eligibleRoleMap := ComputeEligibleRoles(eligibleRoles)
+
+	return eligibleRoleMap, nil
 }
 
 func (a *AzureClient) Activate(url string, body AzurePimRequestBody) (string, error) {

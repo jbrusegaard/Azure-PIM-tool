@@ -30,6 +30,10 @@ type AzureGroupResponse struct {
 	RoleDefinition   AzureGroupResponseRoleDefinition `json:"roleDefinition"`
 }
 
+func (a *AzureGroupResponse) GetGroupName() string {
+	return a.RoleDefinition.Resource.DisplayName
+}
+
 type AzureGroupResponseList struct {
 	Value []AzureGroupResponse `json:"value"`
 }
