@@ -3,6 +3,7 @@ package src
 import (
 	"app/azuClient"
 	"app/constants"
+	"encoding/json"
 	"fmt"
 
 	"github.com/charmbracelet/log"
@@ -38,8 +39,19 @@ func ActivatePim(opts ActivationOptions) {
 		opts.Reason,
 		opts.Duration,
 	)
-	_, err = azureClient.Activate(constants.AzurePimGroupApiUrlRoleAssigmentRequests, requestBody)
+	resp, err := azureClient.Activate(constants.AzurePimGroupApiUrlRoleAssigmentRequests, requestBody)
 	if err != nil {
-		log.Error(err.Error())
+		if resp != "" {
+			var errResp *azuClient.AzureGroupErrorResponse
+			unmarshErr := json.Unmarshal([]byte(resp), &errResp)
+			if unmarshErr != nil {
+				log.Error(err.Error())
+				return
+			}
+			log.Warn(errResp.Error.Message)
+		} else {
+			log.Error(err.Error())
+		}
 	}
+	log.Infof("Successfully activated role: %s!\n", roleToActivate.GetGroupName())
 }

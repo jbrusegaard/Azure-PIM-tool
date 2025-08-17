@@ -30,6 +30,13 @@ type AzureGroupResponse struct {
 	RoleDefinition   AzureGroupResponseRoleDefinition `json:"roleDefinition"`
 }
 
+type AzureGroupErrorResponse struct {
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
 func (a *AzureGroupResponse) GetGroupName() string {
 	return a.RoleDefinition.Resource.DisplayName
 }
