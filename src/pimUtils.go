@@ -22,10 +22,6 @@ type PimOptions struct {
 	Password        string
 }
 
-func handle2FA(page playwright.Page) error {
-	return nil
-}
-
 func promptForCredentials() (string, string, error) {
 	var username, password string
 	fmt.Print("Username: ")
@@ -111,10 +107,6 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		err = passwordLocator.Press("Enter")
 		if err != nil {
 			panic("could not press password: " + err.Error())
-		}
-		err = handle2FA(page)
-		if err != nil {
-			panic("could not handle 2FA: " + err.Error())
 		}
 	}
 
