@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"syscall"
 	"time"
 
 	"app/azuClient"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/playwright-community/playwright-go"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 type AppSettings struct {
@@ -66,22 +64,6 @@ func preflight() {
 			panic("Failed to install Playwright: " + iErr.Error())
 		}
 	}
-}
-
-func promptForCredentials() (string, string, error) {
-	var username, password string
-	fmt.Print("Username: ")
-	_, err := fmt.Scanln(&username)
-	if err != nil {
-		return "", "", err
-	}
-	fmt.Print("Password: ")
-	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
-	if err != nil {
-		return "", "", err
-	}
-	password = string(bytePassword)
-	return username, password, nil
 }
 
 func Initialize(logger *log.Logger) AppSettings {

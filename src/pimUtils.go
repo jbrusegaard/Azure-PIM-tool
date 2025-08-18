@@ -2,9 +2,12 @@ package src
 
 import (
 	"encoding/json"
+	"fmt"
+	"syscall"
 	"time"
 
 	"app/azuClient"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -21,6 +24,22 @@ type PimOptions struct {
 
 func handle2FA(page playwright.Page) error {
 	return nil
+}
+
+func promptForCredentials() (string, string, error) {
+	var username, password string
+	fmt.Print("Username: ")
+	_, err := fmt.Scanln(&username)
+	if err != nil {
+		return "", "", err
+	}
+	fmt.Print("Password: ")
+	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	if err != nil {
+		return "", "", err
+	}
+	password = string(bytePassword)
+	return username, password, nil
 }
 
 func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
