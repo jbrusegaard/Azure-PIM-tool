@@ -3,6 +3,7 @@ package src
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"syscall"
 	"time"
 
@@ -23,11 +24,14 @@ type PimOptions struct {
 }
 
 func promptForCredentials() (string, string, error) {
-	var username, password string
-	fmt.Print("Username: ")
-	_, err := fmt.Scanln(&username)
-	if err != nil {
-		return "", "", err
+	username := os.Getenv("EZPIM_USERNAME")
+	var password string
+	if len(username) == 0 {
+		fmt.Print("Username: ")
+		_, err := fmt.Scanln(&username)
+		if err != nil {
+			return "", "", err
+		}
 	}
 	fmt.Print("Password: ")
 	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
