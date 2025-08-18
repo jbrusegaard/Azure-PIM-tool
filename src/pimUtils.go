@@ -1,9 +1,10 @@
 package src
 
 import (
-	"app/azuClient"
 	"encoding/json"
 	"time"
+
+	"app/azuClient"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -14,6 +15,8 @@ type PimOptions struct {
 	KioskMode       bool
 	PreserveSession bool
 	AzurePortalURL  string
+	Username        string
+	Password        string
 }
 
 func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {

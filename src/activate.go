@@ -16,7 +16,7 @@ type ActivationOptions struct {
 
 func ActivatePim(opts ActivationOptions) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize()
+	appSettings := Initialize(logger)
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
