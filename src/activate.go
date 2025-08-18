@@ -40,7 +40,6 @@ func ActivatePim(opts ActivationOptions) {
 		log.Infof("Activating role: %s", roleToActivate.GetGroupName())
 		requestBody := azuClient.BuildPimRequestBody(
 			roleToActivate,
-			roleToActivate.Subject.Id,
 			opts.Reason,
 			opts.Duration,
 		)
