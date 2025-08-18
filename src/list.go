@@ -4,8 +4,6 @@ import (
 	"app/azuClient"
 	"app/constants"
 	"app/log"
-
-	"fmt"
 )
 
 func ListGroups() {
@@ -18,7 +16,12 @@ func ListGroups() {
 	if err != nil {
 		panic(err)
 	}
+	if len(roles) == 0 {
+		logger.Warn("No eligible roles found")
+		return
+	}
+
 	for _, role := range roles {
-		fmt.Println(role.GetGroupName())
+		logger.WithPrefix("ROLE").Info(role.GetGroupName())
 	}
 }
