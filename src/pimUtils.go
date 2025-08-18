@@ -73,10 +73,18 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		if err != nil {
 			panic("could not fill email: " + err.Error())
 		}
+		err = usernameLocator.Press("Enter")
+		if err != nil {
+			panic("could not press email: " + err.Error())
+		}
 		passwordLocator := page.GetByPlaceholder("Password")
 		err = passwordLocator.Fill(opts.Password)
 		if err != nil {
 			panic("could not fill password: " + err.Error())
+		}
+		err = passwordLocator.Press("Enter")
+		if err != nil {
+			panic("could not press password: " + err.Error())
 		}
 	}
 
