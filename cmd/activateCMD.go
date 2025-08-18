@@ -10,20 +10,20 @@ import (
 )
 
 var activateC = &cobra.Command{
-	Use:   "activate <groupName>",
+	Use:   "activate [groupName1] [groupName2] ...",
 	Short: "Activate PIM for groups",
 	Long:  `Activate PIM for groups`,
 	Run: func(cmd *cobra.Command, args []string) {
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
 		opts := src.ActivationOptions{
-			Reason:    reason,
-			Duration:  duration,
-			GroupName: args[0], // filter criteria for activation
+			Reason:     reason,
+			Duration:   duration,
+			GroupNames: args, // filter criteria for activation
 		}
 		src.ActivatePim(opts)
 	},
-	Args: cobra.ExactArgs(1),
+	Args: cobra.MinimumNArgs(1),
 }
 
 func init() {
