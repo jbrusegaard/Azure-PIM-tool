@@ -5,8 +5,7 @@ import (
 
 	"app/azuClient"
 	"app/constants"
-
-	"github.com/charmbracelet/log"
+	"app/log"
 )
 
 type ActivationOptions struct {
@@ -16,28 +15,29 @@ type ActivationOptions struct {
 }
 
 func ActivatePim(opts ActivationOptions) {
+	logger := log.InitializeLogger()
 	appSettings := Initialize()
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
 	eligibleRoleMap, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
 	if err != nil {
-		log.Error("Error fetching eligible roles:", err)
+		logger.Errorf("Error fetching eligible roles: %s", err)
 		return
 	}
 
 	if len(eligibleRoleMap) == 0 {
-		log.Warn("No eligible roles found.")
+		logger.Warn("No eligible roles found.")
 	}
 	for _, groupName := range opts.GroupNames {
 		roleToActivate, found := eligibleRoleMap[groupName]
 
 		if !found {
-			log.Warnf("No eligible group found with the specified name: %s", groupName)
+			logger.Warnf("No eligible group found with the specified name: %s", groupName)
 			continue
 		}
 
-		log.Infof("Activating role: %s", roleToActivate.GetGroupName())
+		logger.With("role", roleToActivate.GetGroupName()).Info("Activating role")
 		requestBody := azuClient.BuildPimRequestBody(
 			roleToActivate,
 			opts.Reason,
@@ -49,16 +49,16 @@ func ActivatePim(opts ActivationOptions) {
 				var errResp *azuClient.AzureGroupErrorResponse
 				unmarshErr := json.Unmarshal([]byte(resp), &errResp)
 				if unmarshErr != nil {
-					log.Error(err.Error())
+					logger.With("role", groupName).Error(err.Error())
 					return
 				}
-				log.Warn(errResp.Error.Message)
+				logger.With("role", groupName).Warn(errResp.Error.Message)
 			} else {
-				log.Error(err.Error())
+				logger.With("role", groupName).Error(err.Error())
 			}
 			return
 		}
-		log.Infof("Successfully activated role: %s!", roleToActivate.GetGroupName())
+		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role", roleToActivate.GetGroupName())
 	}
 
 }
