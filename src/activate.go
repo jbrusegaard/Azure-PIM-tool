@@ -9,14 +9,15 @@ import (
 )
 
 type ActivationOptions struct {
-	Reason     string
-	Duration   int      // Duration in hours
-	GroupNames []string // Filter criteria for activation
+	Interactive bool
+	Reason      string
+	Duration    int      // Duration in hours
+	GroupNames  []string // Filter criteria for activation
 }
 
 func ActivatePim(opts ActivationOptions) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize(logger)
+	appSettings := Initialize(logger, opts.Interactive)
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

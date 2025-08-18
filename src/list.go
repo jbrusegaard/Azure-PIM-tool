@@ -6,9 +6,9 @@ import (
 	"app/log"
 )
 
-func ListGroups() {
+func ListGroups(interactive bool) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize(logger)
+	appSettings := Initialize(logger, interactive)
 	client := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

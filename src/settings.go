@@ -66,7 +66,7 @@ func preflight() {
 	}
 }
 
-func Initialize(logger *log.Logger) AppSettings {
+func Initialize(logger *log.Logger, interactiveMode bool) AppSettings {
 	preflight()
 	appSettings := loadSessionFromFile()
 	now := time.Now().Unix()
@@ -77,7 +77,10 @@ func Initialize(logger *log.Logger) AppSettings {
 	if now > int64(expiresOn) {
 		logger.Info("Token expired. Please login to get new token")
 		logger.Info("Launching browser to get new token")
-		username, password, err := promptForCredentials()
+		var username, password string
+		if !interactiveMode {
+			username, password, err = promptForCredentials()
+		}
 		if err != nil {
 			logger.Warn("Failed to get credentials. You will need to manually login to get new token")
 		} else {
