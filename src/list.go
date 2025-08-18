@@ -7,9 +7,8 @@ import (
 )
 
 func ListGroups() {
-	appSettings := Initialize()
 	logger := log.InitializeLogger()
-
+	appSettings := Initialize(logger)
 	client := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

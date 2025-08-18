@@ -1,6 +1,7 @@
 package src
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -65,7 +66,7 @@ func preflight() {
 	}
 }
 
-func Initialize() AppSettings {
+func Initialize(logger *log.Logger) AppSettings {
 	preflight()
 	appSettings := loadSessionFromFile()
 	now := time.Now().Unix()
@@ -74,7 +75,15 @@ func Initialize() AppSettings {
 		expiresOn = 0
 	}
 	if now > int64(expiresOn) {
-		log.Info("Token expired. Please login to get new token")
+		logger.Info("Token expired. Please login to get new token")
+		logger.Info("Launching browser to get new token")
+		username, password, err := promptForCredentials()
+		if err != nil {
+			logger.Warn("Failed to get credentials. You will need to manually login to get new token")
+		} else {
+			fmt.Println()
+			logger.Info("Successfully retrieved credentials")
+		}
 		LaunchBrowserToGetToken(
 			appSettings, PimOptions{
 				Headless:        false,
@@ -82,6 +91,8 @@ func Initialize() AppSettings {
 				KioskMode:       true,
 				PreserveSession: true,
 				AzurePortalURL:  constants.AzurePortalUrl,
+				Username:        username,
+				Password:        password,
 			},
 		)
 		appSettings = loadSessionFromFile()

@@ -1,9 +1,13 @@
 package src
 
 import (
-	"app/azuClient"
 	"encoding/json"
+	"fmt"
+	"syscall"
 	"time"
+
+	"app/azuClient"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -14,6 +18,24 @@ type PimOptions struct {
 	KioskMode       bool
 	PreserveSession bool
 	AzurePortalURL  string
+	Username        string
+	Password        string
+}
+
+func promptForCredentials() (string, string, error) {
+	var username, password string
+	fmt.Print("Username: ")
+	_, err := fmt.Scanln(&username)
+	if err != nil {
+		return "", "", err
+	}
+	fmt.Print("Password: ")
+	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	if err != nil {
+		return "", "", err
+	}
+	password = string(bytePassword)
+	return username, password, nil
 }
 
 func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
@@ -62,14 +84,41 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		panic("could not create page: " + err.Error())
 	}
 
-	page.Goto(opts.AzurePortalURL)
+	_, err = page.Goto(opts.AzurePortalURL)
+	if err != nil {
+		panic("could not goto: " + err.Error())
+	}
+
+	if opts.Username != "" && opts.Password != "" {
+		usernameLocator := page.GetByPlaceholder("Email, phone, or Skype")
+		err := usernameLocator.Fill(opts.Username)
+		if err != nil {
+			panic("could not fill email: " + err.Error())
+		}
+		err = usernameLocator.Press("Enter")
+		if err != nil {
+			panic("could not press email: " + err.Error())
+		}
+		passwordLocator := page.GetByPlaceholder("Password")
+		err = passwordLocator.Fill(opts.Password)
+		if err != nil {
+			panic("could not fill password: " + err.Error())
+		}
+		err = passwordLocator.Press("Enter")
+		if err != nil {
+			panic("could not press password: " + err.Error())
+		}
+	}
 
 	// Need to wait for user to auth and then go to the azure portal home page
-	page.WaitForURL(
+	err = page.WaitForURL(
 		opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{
 			Timeout: playwright.Float(float64(5 * time.Minute)),
 		},
 	)
+	if err != nil {
+		panic("could not wait for URL: " + err.Error())
+	}
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
 		var apt azuClient.AzurePimToken
