@@ -16,10 +16,13 @@ var activateC = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
+		interactive, _ := cmd.Flags().GetBool("interactive")
+
 		opts := src.ActivationOptions{
-			Reason:     reason,
-			Duration:   duration,
-			GroupNames: args, // filter criteria for activation
+			Interactive: interactive,
+			Reason:      reason,
+			Duration:    duration,
+			GroupNames:  args, // filter criteria for activation
 		}
 		src.ActivatePim(opts)
 	},
@@ -40,4 +43,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// activateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	activateC.Flags().BoolP("interactive", "i", false, "If true will let you use browser to enter password")
 }
