@@ -64,16 +64,24 @@ go run main.go list
 
 ### Activate a Role
 
-To activate a specific PIM role:
+You can activate one or multiple PIM roles simultaneously:
 
 ```bash
-go run main.go activate <role_name> -r "reason for activation"
+go run main.go activate [role_name] [role_name] -r "reason for activation"
 ```
 
-Replace `<role_name>` with the name of the role you want to activate and provide a reason for the activation after the `-r` flag.
+Replace each `[role_name]` with the name of the role you want to activate and provide a reason for the activation after the `-r` flag.
 
 Example:
 
+One role
+
 ```bash
-go run main.go activate "Global_Administrator" -r "Needed to complete task"
+go run main.go activate "Global_Admin" -r "Needed to complete task"
+```
+
+Multiple roles
+
+```bash
+go run main.go activate "Global_Admin" "Security_Admin" -r "Needed to complete task"
 ```
