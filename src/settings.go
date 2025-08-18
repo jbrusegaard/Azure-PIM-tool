@@ -1,12 +1,13 @@
 package src
 
 import (
-	"app/azuClient"
-	"app/constants"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"app/azuClient"
+	"app/constants"
 
 	"github.com/charmbracelet/log"
 	"github.com/playwright-community/playwright-go"
