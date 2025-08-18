@@ -58,7 +58,7 @@ func ActivatePim(opts ActivationOptions) {
 			}
 			return
 		}
-		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role", roleToActivate.GetGroupName())
+		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role")
 	}
 
 }

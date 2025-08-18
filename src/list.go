@@ -3,11 +3,13 @@ package src
 import (
 	"app/azuClient"
 	"app/constants"
-	"fmt"
+	"app/log"
 )
 
 func ListGroups() {
 	appSettings := Initialize()
+	logger := log.InitializeLogger()
+
 	client := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
@@ -15,7 +17,12 @@ func ListGroups() {
 	if err != nil {
 		panic(err)
 	}
+	if len(roles) == 0 {
+		logger.Warn("No eligible roles found")
+		return
+	}
+
 	for _, role := range roles {
-		fmt.Println(role.GetGroupName())
+		logger.WithPrefix("ROLE").Info(role.GetGroupName())
 	}
 }

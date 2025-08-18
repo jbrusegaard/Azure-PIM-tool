@@ -1,25 +1,26 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "app",
+	Use:   "ezpim",
 	Short: "A CLI tool to simplify and automate PIM in Azure environments",
 	Long: `This tool provides a CLI that simplifies and automates PIM in Azure environments.
 
 You can authenticate with your own Azure account, list eligible roles, and easily activate one or more roles with configurable duration and reasons. 
 Uses the Azure CLI along with Playwright and Chromium under the hood. Run with the --help flag for more information.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Print(cmd.UsageString())
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -42,5 +43,3 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-
