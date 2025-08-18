@@ -15,16 +15,11 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "app",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "A CLI tool to simplify and automate PIM in Azure environments",
+	Long: `This tool provides a CLI that simplifies and automates PIM in Azure environments.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+You can authenticate with your own Azure account, list eligible roles, and easily activate one or more roles with configurable duration and reasons. 
+Uses the Azure CLI along with Playwright and Chromium under the hood. Run with the --help flag for more information.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
