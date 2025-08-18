@@ -19,6 +19,10 @@ type PimOptions struct {
 	Password        string
 }
 
+func handle2FA(page playwright.Page) error {
+	return nil
+}
+
 func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 
 	pw, err := playwright.Run(
@@ -65,7 +69,10 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		panic("could not create page: " + err.Error())
 	}
 
-	page.Goto(opts.AzurePortalURL)
+	_, err = page.Goto(opts.AzurePortalURL)
+	if err != nil {
+		panic("could not goto: " + err.Error())
+	}
 
 	if opts.Username != "" && opts.Password != "" {
 		usernameLocator := page.GetByPlaceholder("Email, phone, or Skype")
@@ -86,14 +93,21 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		if err != nil {
 			panic("could not press password: " + err.Error())
 		}
+		err = handle2FA(page)
+		if err != nil {
+			panic("could not handle 2FA: " + err.Error())
+		}
 	}
 
 	// Need to wait for user to auth and then go to the azure portal home page
-	page.WaitForURL(
+	err = page.WaitForURL(
 		opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{
 			Timeout: playwright.Float(float64(5 * time.Minute)),
 		},
 	)
+	if err != nil {
+		panic("could not wait for URL: " + err.Error())
+	}
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
 		var apt azuClient.AzurePimToken
