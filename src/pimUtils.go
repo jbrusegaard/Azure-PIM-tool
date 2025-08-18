@@ -67,6 +67,19 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 
 	page.Goto(opts.AzurePortalURL)
 
+	if opts.Username != "" && opts.Password != "" {
+		usernameLocator := page.GetByPlaceholder("Email, phone, or Skype")
+		err := usernameLocator.Fill(opts.Username)
+		if err != nil {
+			panic("could not fill email: " + err.Error())
+		}
+		passwordLocator := page.GetByPlaceholder("Password")
+		err = passwordLocator.Fill(opts.Password)
+		if err != nil {
+			panic("could not fill password: " + err.Error())
+		}
+	}
+
 	// Need to wait for user to auth and then go to the azure portal home page
 	page.WaitForURL(
 		opts.AzurePortalURL+"#home", playwright.PageWaitForURLOptions{

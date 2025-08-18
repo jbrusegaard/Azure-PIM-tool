@@ -95,15 +95,17 @@ func Initialize(logger *log.Logger) AppSettings {
 	if now > int64(expiresOn) {
 		log.Info("Token expired. Please login to get new token")
 		log.Info("Launching browser to get new token")
+		headless := false
 		username, password, err := promptForCredentials()
 		if err != nil {
 			logger.Warn("Failed to get credentials. You will need to manually login to get new token")
 		} else {
 			logger.Info("Successfully retrieved credentials")
+			headless = true
 		}
 		LaunchBrowserToGetToken(
 			appSettings, PimOptions{
-				Headless:        false,
+				Headless:        headless,
 				AppMode:         true,
 				KioskMode:       true,
 				PreserveSession: true,
