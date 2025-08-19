@@ -17,7 +17,7 @@ var activateC = &cobra.Command{
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
 		interactive, _ := cmd.Flags().GetBool("interactive")
-		headless, _ := cmd.Flags().GetBool("headless")
+		headless, _ := cmd.Flags().GetBool("browserHeadless")
 
 		if headless && interactive {
 			panic("Cannot use headless and interactive flags at the same time")
