@@ -16,6 +16,7 @@ import (
 
 const userNameTextBox = "//*[@id=\"i0116\"]"
 const userNameSubmitButton = "//*[@id=\"idSIButton9\"]"
+const enterButton = "Enter"
 
 type PimOptions struct {
 	Headless        bool
@@ -37,7 +38,7 @@ func promptForCredentials() (string, string, error) {
 			return "", "", err
 		}
 	}
-	fmt.Print("Password: ")
+	fmt.Println("Password: ")
 	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	if err != nil {
 		return "", "", err
@@ -47,6 +48,18 @@ func promptForCredentials() (string, string, error) {
 }
 
 func handle2FA(page playwright.Page) error {
+	multifactorLocator := page.GetByPlaceholder("Code")
+	fmt.Println("2FA Code: ")
+	byteCode, err := terminal.ReadPassword(syscall.Stdin)
+	if err != nil {
+		return err
+	}
+	if err = multifactorLocator.Fill(string(byteCode)); err != nil {
+		return err
+	}
+	if err = multifactorLocator.Press(enterButton); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -113,13 +126,16 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		if err != nil {
 			panic("could not fill password: " + err.Error())
 		}
-		err = passwordLocator.Press("Enter")
+		err = passwordLocator.Press(enterButton)
 		if err != nil {
 			panic("could not press password: " + err.Error())
 		}
 
 		if opts.Headless {
 			err = handle2FA(page)
+			if err != nil {
+				panic("could not handle 2FA: " + err.Error())
+			}
 		}
 	}
 
