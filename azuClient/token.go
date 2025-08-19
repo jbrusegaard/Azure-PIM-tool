@@ -1,6 +1,7 @@
 package azuClient
 
 import (
+	"app/log"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -32,8 +33,12 @@ func (apt *AzurePimToken) ComputeAdditionalFields() error {
 		return nil
 	}
 
+	logger := log.InitializeLogger()
+
 	// Manually decode the JWT token to extract claims without signature verification
 	// Split the JWT into parts (header.payload.signature)
+	logger.WithPrefix("JWT").Info("Decoding JWT token...")
+	logger.WithPrefix("JWT").Infof("JWT token found: %s***", apt.Secret[:3])
 	parts := strings.Split(apt.Secret, ".")
 	if len(parts) != 3 {
 		return fmt.Errorf("invalid JWT format: expected 3 parts, got %d", len(parts))
