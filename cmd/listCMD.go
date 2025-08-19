@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"app/log"
 	"app/src"
 
 	"github.com/spf13/cobra"
@@ -15,10 +16,11 @@ var listCmd = &cobra.Command{
 	Short: "List all groups available to Azure PIM",
 	Long:  `List all groups available to Azure PIM`,
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := log.InitializeLogger()
 		interactive, _ := cmd.Flags().GetBool("interactive")
-		headless, _ := cmd.Flags().GetBool("browserHeadless")
+		headless, _ := cmd.Flags().GetBool("browser-headless")
 		if headless && interactive {
-			panic("Cannot use headless and interactive flags at the same time")
+			logger.Fatal("Cannot use headless and interactive flags at the same time")
 		}
 		src.ListGroups(src.ListOpts{Headless: headless, Interactive: interactive})
 	},
