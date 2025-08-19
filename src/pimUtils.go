@@ -73,6 +73,9 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 			Browsers: []string{"chromium"},
 		},
 	)
+	defer func(pw *playwright.Playwright) {
+		_ = pw.Stop()
+	}(pw)
 	if err != nil {
 		panic("could not start Playwright: " + err.Error())
 	}
@@ -102,6 +105,9 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 			Args:     args,
 		},
 	)
+	defer func(browser playwright.Browser, options ...playwright.BrowserCloseOptions) {
+		_ = browser.Close(options...)
+	}(browser)
 	if err != nil {
 		panic("could not launch browser: " + err.Error())
 	}
