@@ -94,7 +94,7 @@ func Initialize(logger *log.Logger, opts InitOpts) AppSettings {
 		}
 		LaunchBrowserToGetToken(
 			appSettings, PimOptions{
-				Headless:        false,
+				Headless:        opts.Headless,
 				AppMode:         true,
 				KioskMode:       true,
 				PreserveSession: true,
