@@ -17,8 +17,14 @@ var activateC = &cobra.Command{
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
 		interactive, _ := cmd.Flags().GetBool("interactive")
+		headless, _ := cmd.Flags().GetBool("headless")
+
+		if headless && interactive {
+			panic("Cannot use headless and interactive flags at the same time")
+		}
 
 		opts := src.ActivationOptions{
+			Headless:    headless,
 			Interactive: interactive,
 			Reason:      reason,
 			Duration:    duration,

@@ -16,7 +16,11 @@ var listCmd = &cobra.Command{
 	Long:  `List all groups available to Azure PIM`,
 	Run: func(cmd *cobra.Command, args []string) {
 		interactive, _ := cmd.Flags().GetBool("interactive")
-		src.ListGroups(interactive)
+		headless, _ := cmd.Flags().GetBool("headless")
+		if headless && interactive {
+			panic("Cannot use headless and interactive flags at the same time")
+		}
+		src.ListGroups(src.ListOpts{Headless: headless, Interactive: interactive})
 	},
 }
 

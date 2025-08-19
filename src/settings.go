@@ -19,6 +19,11 @@ type AppSettings struct {
 	Session    SessionConfig
 }
 
+type InitOpts struct {
+	Interactive bool
+	Headless    bool
+}
+
 func (a *AppSettings) SaveSettings() {
 	err := MarshalAndWriteFileContents(a.ConfigFile, a.Session)
 	if err != nil {
@@ -66,7 +71,7 @@ func preflight() {
 	}
 }
 
-func Initialize(logger *log.Logger, interactiveMode bool) AppSettings {
+func Initialize(logger *log.Logger, opts InitOpts) AppSettings {
 	preflight()
 	appSettings := loadSessionFromFile()
 	now := time.Now().Unix()
@@ -78,7 +83,7 @@ func Initialize(logger *log.Logger, interactiveMode bool) AppSettings {
 		logger.Info("Token expired. Please login to get new token")
 		logger.Info("Launching browser to get new token")
 		var username, password string
-		if !interactiveMode {
+		if !opts.Interactive {
 			username, password, err = promptForCredentials()
 		}
 		if err != nil {

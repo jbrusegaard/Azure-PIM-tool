@@ -42,5 +42,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().BoolP("browserHeadless", "h", false, "browser headless, only use if you want the browser to be totally headless. All information will be taken via cli")
+	rootCmd.Flags().BoolP("browserHeadless", "b", false, "browser headless, only use if you want the browser to be totally headless. All information will be taken via cli")
 }
