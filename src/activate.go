@@ -9,6 +9,7 @@ import (
 )
 
 type ActivationOptions struct {
+	Headless    bool
 	Interactive bool
 	Reason      string
 	Duration    int      // Duration in hours
@@ -17,7 +18,10 @@ type ActivationOptions struct {
 
 func ActivatePim(opts ActivationOptions) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize(logger, opts.Interactive)
+	appSettings := Initialize(logger, InitOpts{
+		Interactive: opts.Interactive,
+		Headless:    opts.Headless,
+	})
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

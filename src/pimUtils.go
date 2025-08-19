@@ -8,10 +8,15 @@ import (
 	"time"
 
 	"app/azuClient"
+
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/playwright-community/playwright-go"
 )
+
+const userNameTextBox = "//*[@id=\"i0116\"]"
+const userNameSubmitButton = "//*[@id=\"idSIButton9\"]"
+const enterButton = "Enter"
 
 type PimOptions struct {
 	Headless        bool
@@ -39,7 +44,26 @@ func promptForCredentials() (string, string, error) {
 		return "", "", err
 	}
 	password = string(bytePassword)
+	fmt.Println("")
 	return username, password, nil
+}
+
+func handle2FA(page playwright.Page) error {
+	var multiFactorCode string
+	multifactorLocator := page.GetByPlaceholder("Code")
+	fmt.Print("2FA Code: ")
+	_, err := fmt.Scanln(&multiFactorCode)
+	if err != nil {
+		return err
+	}
+	fmt.Println("")
+	if err = multifactorLocator.Fill(multiFactorCode); err != nil {
+		return err
+	}
+	if err = multifactorLocator.Press(enterButton); err != nil {
+		return err
+	}
+	return nil
 }
 
 func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
@@ -49,6 +73,9 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 			Browsers: []string{"chromium"},
 		},
 	)
+	defer func(pw *playwright.Playwright) {
+		_ = pw.Stop()
+	}(pw)
 	if err != nil {
 		panic("could not start Playwright: " + err.Error())
 	}
@@ -78,6 +105,9 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 			Args:     args,
 		},
 	)
+	defer func(browser playwright.Browser, options ...playwright.BrowserCloseOptions) {
+		_ = browser.Close(options...)
+	}(browser)
 	if err != nil {
 		panic("could not launch browser: " + err.Error())
 	}
@@ -94,13 +124,10 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 	}
 
 	if opts.Username != "" && opts.Password != "" {
-		usernameLocator := page.GetByPlaceholder("Email, phone, or Skype")
-		err := usernameLocator.Fill(opts.Username)
-		if err != nil {
-			panic("could not fill email: " + err.Error())
+		if err = page.Locator(userNameTextBox).Fill(opts.Username); err != nil {
+			panic(err)
 		}
-		err = usernameLocator.Press("Enter")
-		if err != nil {
+		if err = page.Locator(userNameSubmitButton).Click(); err != nil {
 			panic("could not press email: " + err.Error())
 		}
 		passwordLocator := page.GetByPlaceholder("Password")
@@ -108,9 +135,16 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 		if err != nil {
 			panic("could not fill password: " + err.Error())
 		}
-		err = passwordLocator.Press("Enter")
+		err = passwordLocator.Press(enterButton)
 		if err != nil {
 			panic("could not press password: " + err.Error())
+		}
+
+		if opts.Headless {
+			err = handle2FA(page)
+			if err != nil {
+				panic("could not handle 2FA: " + err.Error())
+			}
 		}
 	}
 

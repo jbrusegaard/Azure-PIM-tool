@@ -6,9 +6,17 @@ import (
 	"app/log"
 )
 
-func ListGroups(interactive bool) {
+type ListOpts struct {
+	Interactive bool
+	Headless    bool
+}
+
+func ListGroups(opts ListOpts) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize(logger, interactive)
+	appSettings := Initialize(logger, InitOpts{
+		Interactive: opts.Interactive,
+		Headless:    opts.Headless,
+	})
 	client := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

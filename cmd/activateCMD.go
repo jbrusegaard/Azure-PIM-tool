@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"app/log"
 	"app/src"
 
 	"github.com/spf13/cobra"
@@ -14,11 +15,18 @@ var activateC = &cobra.Command{
 	Short: "Activate PIM for groups",
 	Long:  `Activate PIM for groups`,
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := log.InitializeLogger()
 		duration, _ := cmd.Flags().GetInt("duration")
 		reason, _ := cmd.Flags().GetString("reason")
 		interactive, _ := cmd.Flags().GetBool("interactive")
+		headless, _ := cmd.Flags().GetBool("browser-headless")
+
+		if headless && interactive {
+			logger.Fatal("Cannot use headless and interactive flags at the same time")
+		}
 
 		opts := src.ActivationOptions{
+			Headless:    headless,
 			Interactive: interactive,
 			Reason:      reason,
 			Duration:    duration,
