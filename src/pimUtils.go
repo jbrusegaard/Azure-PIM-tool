@@ -38,23 +38,26 @@ func promptForCredentials() (string, string, error) {
 			return "", "", err
 		}
 	}
-	fmt.Println("Password: ")
+	fmt.Print("Password: ")
 	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	if err != nil {
 		return "", "", err
 	}
 	password = string(bytePassword)
+	fmt.Println("")
 	return username, password, nil
 }
 
 func handle2FA(page playwright.Page) error {
+	var multiFactorCode string
 	multifactorLocator := page.GetByPlaceholder("Code")
-	fmt.Println("2FA Code: ")
-	byteCode, err := terminal.ReadPassword(syscall.Stdin)
+	fmt.Print("2FA Code: ")
+	_, err := fmt.Scanln(&multiFactorCode)
 	if err != nil {
 		return err
 	}
-	if err = multifactorLocator.Fill(string(byteCode)); err != nil {
+	fmt.Println("")
+	if err = multifactorLocator.Fill(multiFactorCode); err != nil {
 		return err
 	}
 	if err = multifactorLocator.Press(enterButton); err != nil {
