@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/charmbracelet/log"
 )
 
 type AzureClient struct {
@@ -80,6 +82,9 @@ func (a *AzureClient) GetEligibleRoles(baseUrl string) (map[string]AzureGroupRes
 	params.Add("$filter", "(subject/id eq '"+a.AzurePimToken.SubjectID+"') and (assignmentState eq 'Eligible')")
 	params.Add("$expand", "linkedEligibleRoleAssignment,subject,scopedResource,roleDefinition($expand=resource)")
 	reqUrl, err := url.Parse(baseUrl)
+	if err != nil {
+		return nil, err
+	}
 	reqUrl.RawQuery = params.Encode()
 
 	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
@@ -102,7 +107,12 @@ func (a *AzureClient) GetEligibleRoles(baseUrl string) (map[string]AzureGroupRes
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Error("failed to close response body")
+		}
+	}(resp.Body)
 
 	// Read response
 	resBody, err := io.ReadAll(resp.Body)
@@ -134,6 +144,9 @@ func (a *AzureClient) Activate(url string, body AzurePimRequestBody) (string, er
 	req, err := http.NewRequest(
 		http.MethodPost, url, bytes.NewBuffer(payload),
 	)
+	if err != nil {
+		return "", err
+	}
 	headers := map[string]string{
 		"Authorization": "Bearer " + a.AzurePimToken.Secret,
 		"Content-Type":  "application/json",
@@ -148,7 +161,12 @@ func (a *AzureClient) Activate(url string, body AzurePimRequestBody) (string, er
 	if err != nil {
 		return "", fmt.Errorf("failed to make request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Error("failed to close response body")
+		}
+	}(resp.Body)
 
 	// Read response
 	resBody, err := io.ReadAll(resp.Body)

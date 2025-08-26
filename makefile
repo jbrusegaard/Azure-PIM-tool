@@ -15,3 +15,11 @@ clean:
 	@echo "Cleaning up..."
 	@go clean -cache -testcache -modcache
 	@echo "Cleanup complete."
+
+.PHONY: lint
+lint:
+	pre-commit run --all-files
+
+.PHONY: setup
+setup:
+	pre-commit install

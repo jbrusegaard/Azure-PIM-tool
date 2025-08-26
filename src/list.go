@@ -13,10 +13,7 @@ type ListOpts struct {
 
 func ListGroups(opts ListOpts) {
 	logger := log.InitializeLogger()
-	appSettings := Initialize(logger, InitOpts{
-		Interactive: opts.Interactive,
-		Headless:    opts.Headless,
-	})
+	appSettings := Initialize(logger, InitOpts(opts))
 	client := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}

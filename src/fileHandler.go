@@ -34,7 +34,12 @@ func GetOrCreateFile(path string, defaultContent string) ([]byte, error) {
 		if err2 != nil {
 			return nil, err2
 		}
-		defer file.Close()
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				log.Error(err.Error())
+			}
+		}(file)
 		// write default content to the file
 		if _, err = file.WriteString(defaultContent); err != nil {
 			log.Errorf("Error creating file: %s", err)

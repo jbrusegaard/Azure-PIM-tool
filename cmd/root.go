@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI tool to simplify and automate PIM in Azure environments",
 	Long: `This tool provides a CLI that simplifies and automates PIM in Azure environments.
 
-You can authenticate with your own Azure account, list eligible roles, and easily activate one or more roles with configurable duration and reasons. 
+You can authenticate with your own Azure account, list eligible roles, and easily activate one or more roles with configurable duration and reasons.
 Uses the Azure CLI along with Playwright and Chromium under the hood. Run with the --help flag for more information.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print(cmd.UsageString())

@@ -9,7 +9,7 @@ import (
 
 	"app/azuClient"
 
-	"golang.org/x/crypto/ssh/terminal"
+	terminal "golang.org/x/term"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -200,13 +200,13 @@ func CaptureSessionData(page playwright.Page) map[string]string {
 	return make(map[string]string)
 }
 
-func RestoreSessionData(sessionData string, page playwright.Page) {
-	expression := `
-	(data) => {
-		const dataParsed = JSON.parse(data)
-		for(const key in dataParsed) {
-			sessionStorage.setItem(key)
-		}
-	}`
-	page.Evaluate(expression, sessionData)
-}
+// func RestoreSessionData(sessionData string, page playwright.Page) {
+// 	expression := `
+// 	(data) => {
+// 		const dataParsed = JSON.parse(data)
+// 		for(const key in dataParsed) {
+// 			sessionStorage.setItem(key)
+// 		}
+// 	}`
+// 	page.Evaluate(expression, sessionData)
+// }
