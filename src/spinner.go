@@ -75,9 +75,9 @@ func (m spinnerModel) View() string {
 	if m.err != nil {
 		return m.err.Error()
 	}
-	str := fmt.Sprintf("\n\n   %s %s \n\n", m.spinner.View(), m.message)
+	str := fmt.Sprintf("\n\n%s %s\n\n", m.spinner.View(), m.message)
 	if m.quitting {
-		return "\n"
+		return "\n\n\n\n\n"
 		// return str + "\n"
 	}
 	return str

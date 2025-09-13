@@ -183,7 +183,6 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 			break
 		}
 	}
-	spinner.Send(UpdateMessageMsg{NewMessage: "Closing browser"})
 }
 
 func CaptureSessionData(page playwright.Page) map[string]string {
