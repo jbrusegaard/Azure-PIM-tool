@@ -106,7 +106,6 @@ func Initialize(logger *charmlog.Logger, opts InitOpts) AppSettings {
 				fmt.Println()
 				logger.Info("Successfully captured credentials")
 			}
-
 		}
 
 		spinner := StartSpinner("Starting login process", spinner2.Points)
@@ -115,7 +114,6 @@ func Initialize(logger *charmlog.Logger, opts InitOpts) AppSettings {
 				logger.Warn("Failed to release terminal from spinner")
 			}
 			spinner.Send(UpdateMessageMsg{Quitting: true})
-			// spinner.Quit()
 		}()
 
 		LaunchBrowserToGetToken(
@@ -156,7 +154,6 @@ func exitWithError(logger *charmlog.Logger, basicError, debugError string, spinn
 				}
 				s.Send(fmt.Errorf(basicError))
 				time.Sleep(100 * time.Millisecond)
-				// s.Quit()
 			}
 		}
 		time.Sleep(100 * time.Millisecond) // allow time for terminal to reset
