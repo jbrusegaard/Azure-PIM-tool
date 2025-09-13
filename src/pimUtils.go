@@ -79,7 +79,7 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 		_ = pw.Stop()
 	}(pw)
 	if err != nil {
-		exitWithError(logger, "could not start Playwright", fmt.Sprintf("could not start Playwright: %s", err.Error()))
+		exitWithError(logger, "could not start Playwright", fmt.Sprintf("could not start Playwright: %s", err.Error()), spinner)
 	}
 
 	var args = []string{
@@ -114,46 +114,46 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 	}(browser)
 
 	if err != nil {
-		exitWithError(logger, "could not launch browser", fmt.Sprintf("could not launch browser: %s", err.Error()))
+		exitWithError(logger, "could not launch browser", fmt.Sprintf("could not launch browser: %s", err.Error()), spinner)
 	}
 
 	// We need to intercept the request when the user logs in to get their pim token
 	page, err := browser.NewPage()
 	if err != nil {
-		exitWithError(logger, "could not create page", fmt.Sprintf("could not create page: %s", err.Error()))
+		exitWithError(logger, "could not create page", fmt.Sprintf("could not create page: %s", err.Error()), spinner)
 	}
 
 	spinner.Send(UpdateMessageMsg{NewMessage: "Navigating to Azure portal"})
 	_, err = page.Goto(opts.AzurePortalURL)
 	if err != nil {
-		exitWithError(logger, fmt.Sprintf("could not goto %s", opts.AzurePortalURL), fmt.Sprintf("couldn'd go to: %s: %s", opts.AzurePortalURL, err.Error()))
+		exitWithError(logger, fmt.Sprintf("could not goto %s", opts.AzurePortalURL), fmt.Sprintf("couldn'd go to: %s: %s", opts.AzurePortalURL, err.Error()), spinner)
 	}
 
 	if opts.Username != "" && opts.Password != "" {
 		spinner.Send(UpdateMessageMsg{NewMessage: "Filling username"})
 		if err = page.Locator(userNameTextBox).Fill(opts.Username); err != nil {
-			exitWithError(logger, "could not fill username", fmt.Sprintf("could not fill username [%s]: %s", opts.Username, err.Error()))
+			exitWithError(logger, "could not fill username", fmt.Sprintf("could not fill username [%s]: %s", opts.Username, err.Error()), spinner)
 		}
 		if err = page.Locator(userNameSubmitButton).Click(); err != nil {
-			exitWithError(logger, "could not submit username", fmt.Sprintf("could not submit username [%s]: %s", opts.Username, err.Error()))
+			exitWithError(logger, "could not submit username", fmt.Sprintf("could not submit username [%s]: %s", opts.Username, err.Error()), spinner)
 		}
 
 		spinner.Send(UpdateMessageMsg{NewMessage: "Filling password"})
 		passwordLocator := page.GetByPlaceholder("Password")
 		err = passwordLocator.Fill(opts.Password)
 		if err != nil {
-			exitWithError(logger, "could not fill password", fmt.Sprintf("could not fill password: %s", err.Error()))
+			exitWithError(logger, "could not fill password", fmt.Sprintf("could not fill password: %s", err.Error()), spinner)
 		}
 		err = passwordLocator.Press(enterButton)
 		if err != nil {
-			exitWithError(logger, "could not press password", fmt.Sprintf("could not press password: %s", err.Error()))
+			exitWithError(logger, "could not press password", fmt.Sprintf("could not press password: %s", err.Error()), spinner)
 		}
 
 		spinner.Send(UpdateMessageMsg{NewMessage: "Handling MFA"})
 		if opts.Headless {
 			err = handle2FA(page)
 			if err != nil {
-				exitWithError(logger, "could not handle 2FA", fmt.Sprintf("could not handle 2FA: %s", err.Error()))
+				exitWithError(logger, "could not handle 2FA", fmt.Sprintf("could not handle 2FA: %s", err.Error()), spinner)
 			}
 		}
 	}
@@ -167,7 +167,7 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 		},
 	)
 	if err != nil {
-		exitWithError(logger, "could not wait for URL", "could not wait for URL: "+err.Error())
+		exitWithError(logger, "could not wait for URL", "could not wait for URL: "+err.Error(), spinner)
 	}
 
 	spinner.Send(UpdateMessageMsg{NewMessage: "Capturing session data"})

@@ -19,12 +19,10 @@ func InitializeLogger() *log.Logger {
 
 	styles.Levels[log.WarnLevel] = lipgloss.NewStyle().
 		SetString("WARN").
-		// Background(lipgloss.Color("#000000")).
 		Foreground(lipgloss.Color("#F59C27"))
 
 	styles.Levels[log.FatalLevel] = lipgloss.NewStyle().
 		SetString("EXIT").
-		// Background(lipgloss.Color("#000000")).
 		Bold(true).
 		Foreground(lipgloss.Color("#D41515"))
 

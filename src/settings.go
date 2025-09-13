@@ -11,6 +11,7 @@ import (
 	"app/constants"
 	"app/log"
 	spinner2 "github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
 
 	charmlog "github.com/charmbracelet/log"
 	"github.com/playwright-community/playwright-go"
@@ -113,7 +114,8 @@ func Initialize(logger *charmlog.Logger, opts InitOpts) AppSettings {
 			if err3 := spinner.ReleaseTerminal(); err3 != nil {
 				logger.Warn("Failed to release terminal from spinner")
 			}
-			spinner.Quit()
+			spinner.Send(UpdateMessageMsg{Quitting: true})
+			// spinner.Quit()
 		}()
 
 		LaunchBrowserToGetToken(
@@ -145,7 +147,21 @@ func setDebugging(debug bool) {
 	Debugging = debug
 }
 
-func exitWithError(logger *charmlog.Logger, basicError, debugError string) {
+func exitWithError(logger *charmlog.Logger, basicError, debugError string, spinnersToStop ...*tea.Program) {
+	if len(spinnersToStop) > 0 {
+		for _, s := range spinnersToStop {
+			if s != nil {
+				if err := s.ReleaseTerminal(); err != nil {
+					logger.Warn("Failed to release terminal from spinner")
+				}
+				s.Send(fmt.Errorf(basicError))
+				time.Sleep(100 * time.Millisecond)
+				// s.Quit()
+			}
+		}
+		time.Sleep(100 * time.Millisecond) // allow time for terminal to reset
+	}
+
 	if Debugging {
 		logger.Error(debugError)
 		panic(fmt.Errorf(debugError))

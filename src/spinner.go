@@ -3,6 +3,7 @@ package src
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -43,6 +44,7 @@ func (m spinnerModel) Init() tea.Cmd {
 
 type UpdateMessageMsg struct {
 	NewMessage string
+	Quitting   bool
 }
 
 func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -58,9 +60,16 @@ func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.err = msg
+		m.quitting = true
+		time.Sleep(100 * time.Millisecond) // allow time for terminal to reset
 		return m, nil
 
 	case UpdateMessageMsg: // handle message update
+		if msg.Quitting {
+			m.quitting = true
+			time.Sleep(100 * time.Millisecond) // allow time for terminal to reset
+			return m, tea.Quit
+		}
 		m.message = msg.NewMessage
 		return m, nil
 
@@ -73,12 +82,14 @@ func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m spinnerModel) View() string {
 	if m.err != nil {
-		return m.err.Error()
+		return fmt.Sprintf("\n ❌ %s: %s\n\n", m.message, m.err.Error())
+		// return fmt.Sprintf("\n ❌ %s\n\n", m.err.Error())
+		// return m.err.Error()
 	}
-	str := fmt.Sprintf("\n\n%s %s\n\n", m.spinner.View(), m.message)
 	if m.quitting {
-		return "\n\n\n\n\n"
-		// return str + "\n"
+		return "\n\n\n"
+		// return fmt.Sprintf("\n\n\n", m.message)
 	}
+	str := fmt.Sprintf("\n%s %s\n", m.spinner.View(), m.message)
 	return str
 }
