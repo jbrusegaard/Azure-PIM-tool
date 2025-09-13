@@ -2,6 +2,7 @@ package src
 
 import (
 	"encoding/json"
+	"time"
 
 	"app/azuClient"
 	"app/constants"
@@ -83,5 +84,8 @@ func ActivatePim(opts ActivationOptions) {
 		}
 		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role")
 	}
+
+	spinner.Send(UpdateMessageMsg{Quitting: true})
+	time.Sleep(300 * time.Millisecond) // allow time for terminal to reset
 
 }
