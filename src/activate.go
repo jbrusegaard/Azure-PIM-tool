@@ -50,7 +50,6 @@ func ActivatePim(opts ActivationOptions) {
 			logger.Warn("Failed to release terminal from spinner")
 		}
 		spinner.Send(UpdateMessageMsg{Quitting: true})
-		// spinner.Quit()
 	}()
 
 	for _, groupName := range opts.GroupNames {

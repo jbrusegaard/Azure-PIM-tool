@@ -126,7 +126,7 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 	spinner.Send(UpdateMessageMsg{NewMessage: "Navigating to Azure portal"})
 	_, err = page.Goto(opts.AzurePortalURL)
 	if err != nil {
-		exitWithError(logger, fmt.Sprintf("could not goto %s", opts.AzurePortalURL), fmt.Sprintf("couldn'd go to: %s: %s", opts.AzurePortalURL, err.Error()), spinner)
+		exitWithError(logger, fmt.Sprintf("could not goto %s", opts.AzurePortalURL), fmt.Sprintf("could not go to: %s: %s", opts.AzurePortalURL, err.Error()), spinner)
 	}
 
 	if opts.Username != "" && opts.Password != "" {

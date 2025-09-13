@@ -26,11 +26,6 @@ var activateC = &cobra.Command{
 			logger.Fatal("Cannot use headless and interactive flags at the same time")
 		}
 
-		if !headless && !interactive {
-			logger.Warn("No flags were set; defaulting to headless mode.")
-			headless = true
-		}
-
 		opts := src.ActivationOptions{
 			Headless:    headless,
 			Interactive: interactive,
