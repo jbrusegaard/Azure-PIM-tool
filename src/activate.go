@@ -6,6 +6,7 @@ import (
 	"app/azuClient"
 	"app/constants"
 	"app/log"
+	spinner2 "github.com/charmbracelet/bubbles/spinner"
 )
 
 type ActivationOptions struct {
@@ -39,10 +40,21 @@ func ActivatePim(opts ActivationOptions) {
 
 	if len(eligibleRoleMap) == 0 {
 		logger.Warn("No eligible roles found.")
+		return
 	}
+
+	spinner := StartSpinner("Activating Roles", spinner2.Points)
+	defer func() {
+		if err3 := spinner.ReleaseTerminal(); err3 != nil {
+			logger.Warn("Failed to release terminal from spinner")
+		}
+		spinner.Quit()
+	}()
+
 	for _, groupName := range opts.GroupNames {
 		roleToActivate, found := eligibleRoleMap[groupName]
 
+		spinner.Send(UpdateMessageMsg{NewMessage: "Activating: " + groupName})
 		if !found {
 			logger.With("role", groupName).Warnf("Role not found in eligible roles, skipping activation")
 			continue
