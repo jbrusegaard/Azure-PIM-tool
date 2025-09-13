@@ -14,17 +14,23 @@ type ActivationOptions struct {
 	Reason      string
 	Duration    int      // Duration in hours
 	GroupNames  []string // Filter criteria for activation
+	Debug       bool
 }
 
 func ActivatePim(opts ActivationOptions) {
 	logger := log.InitializeLogger()
+	// Set debugging
+	setDebugging(opts.Debug)
+
 	appSettings := Initialize(logger, InitOpts{
 		Interactive: opts.Interactive,
 		Headless:    opts.Headless,
 	})
+
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
+
 	eligibleRoleMap, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
 	if err != nil {
 		logger.Errorf("Error fetching eligible roles: %s", err)
@@ -38,11 +44,10 @@ func ActivatePim(opts ActivationOptions) {
 		roleToActivate, found := eligibleRoleMap[groupName]
 
 		if !found {
-			logger.Warnf("No eligible group found with the specified name: %s", groupName)
+			logger.With("role", groupName).Warnf("Role not found in eligible roles, skipping activation")
 			continue
 		}
 
-		logger.With("role", roleToActivate.GetGroupName()).Info("Activating role")
 		requestBody := azuClient.BuildPimRequestBody(
 			roleToActivate,
 			opts.Reason,
@@ -61,7 +66,7 @@ func ActivatePim(opts ActivationOptions) {
 			} else {
 				logger.With("role", groupName).Error(err.Error())
 			}
-			return
+			continue
 		}
 		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role")
 	}

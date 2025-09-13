@@ -46,4 +46,5 @@ func init() {
 		"browser-headless", "b", false,
 		"browser headless, only use if you want the browser to be totally headless. All information will be taken via cli",
 	)
+	rootCmd.PersistentFlags().BoolP("debug", "", false, "Enable debug logging and errors")
 }
