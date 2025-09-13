@@ -20,6 +20,7 @@ var activateC = &cobra.Command{
 		reason, _ := cmd.Flags().GetString("reason")
 		interactive, _ := cmd.Flags().GetBool("interactive")
 		headless, _ := cmd.Flags().GetBool("browser-headless")
+		debug, _ := cmd.Flags().GetBool("debug")
 
 		if headless && interactive {
 			logger.Fatal("Cannot use headless and interactive flags at the same time")
@@ -31,6 +32,7 @@ var activateC = &cobra.Command{
 			Reason:      reason,
 			Duration:    duration,
 			GroupNames:  args, // filter criteria for activation
+			Debug:       debug,
 		}
 		src.ActivatePim(opts)
 	},
