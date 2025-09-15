@@ -9,15 +9,10 @@ import (
 
 	"app/azuClient"
 	"app/constants"
-	"app/log"
-	spinner2 "github.com/charmbracelet/bubbles/spinner"
-	tea "github.com/charmbracelet/bubbletea"
 
-	charmlog "github.com/charmbracelet/log"
+	"github.com/charmbracelet/log"
 	"github.com/playwright-community/playwright-go"
 )
-
-var Debugging = false
 
 type AppSettings struct {
 	ConfigFile string
@@ -32,7 +27,7 @@ type InitOpts struct {
 func (a *AppSettings) SaveSettings() {
 	err := MarshalAndWriteFileContents(a.ConfigFile, a.Session)
 	if err != nil {
-		exitWithError(log.GetLogger(), "Could not save config file", err.Error())
+		panic(err)
 	}
 }
 
@@ -49,7 +44,7 @@ func (a *AppSettings) SavePIMToken(token azuClient.AzurePimToken) {
 func buildFilePath(filename string) string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		exitWithError(log.GetLogger(), "could not determine user home directory", err.Error())
+		panic(err)
 	}
 	return home + "/.ezpim/" + filename
 }
@@ -58,10 +53,7 @@ func loadSessionFromFile() AppSettings {
 	appSettings := AppSettings{
 		ConfigFile: buildFilePath("config.json"),
 	}
-	dirErr := CreateDirectoryStructure(filepath.Dir(appSettings.ConfigFile))
-	if dirErr != nil {
-		exitWithError(log.GetLogger(), "Failed to create config directory", dirErr.Error())
-	}
+	_ = CreateDirectoryStructure(filepath.Dir(appSettings.ConfigFile))
 
 	sessionConfig := GetSessionConfig(appSettings.ConfigFile)
 	appSettings.Session = sessionConfig
@@ -69,56 +61,39 @@ func loadSessionFromFile() AppSettings {
 	return appSettings
 }
 
-func preflight(logger *charmlog.Logger) {
+func preflight() {
 	// check if playwright is installed
 	if _, err := playwright.Run(); err != nil {
 		iErr := playwright.Install(&playwright.RunOptions{Browsers: []string{"chromium"}})
 		if iErr != nil {
-			l := logger.With("PRE-FLIGHT", "Playwright")
-			exitWithError(l, "Failed to install Playwright.", iErr.Error())
+			panic("Failed to install Playwright: " + iErr.Error())
 		}
 	}
 }
 
-func Initialize(logger *charmlog.Logger, opts InitOpts) AppSettings {
-	// Set up preflight checks, like installing playwright if not installed
-	preflight(logger)
-
-	// Load session from file
+func Initialize(logger *log.Logger, opts InitOpts) AppSettings {
+	preflight()
 	appSettings := loadSessionFromFile()
-
 	now := time.Now().Unix()
-
 	expiresOn, err := strconv.Atoi(appSettings.Session.AZPimToken.ExpiresOn)
 	if err != nil {
 		expiresOn = 0
 	}
-
 	if now > int64(expiresOn) {
 		logger.Info("Token expired. Please login to get new token")
-
+		logger.Info("Launching browser to get new token")
 		var username, password string
 		if !opts.Interactive {
 			username, password, err = promptForCredentials()
-			if err != nil {
-				logger.Warn("Failed to get credentials. You will need to manually login to get new token")
-			} else {
-				fmt.Println()
-				logger.Info("Successfully captured credentials")
-			}
 		}
-
-		spinner := StartSpinner("Starting login process", spinner2.Points)
-		defer func() {
-			if err3 := spinner.ReleaseTerminal(); err3 != nil {
-				logger.Warn("Failed to release terminal from spinner")
-			}
-			spinner.Send(UpdateMessageMsg{Quitting: true})
-		}()
-
+		if err != nil {
+			logger.Warn("Failed to get credentials. You will need to manually login to get new token")
+		} else {
+			fmt.Println()
+			logger.Info("Successfully retrieved credentials")
+		}
 		LaunchBrowserToGetToken(
-			appSettings,
-			PimOptions{
+			appSettings, PimOptions{
 				Headless:        opts.Headless,
 				AppMode:         true,
 				KioskMode:       true,
@@ -127,42 +102,14 @@ func Initialize(logger *charmlog.Logger, opts InitOpts) AppSettings {
 				Username:        username,
 				Password:        password,
 			},
-			logger,
-			spinner,
 		)
 		appSettings = loadSessionFromFile()
 	}
 
 	err = appSettings.Session.AZPimToken.ComputeAdditionalFields()
 	if err != nil {
-		exitWithError(logger, "Failed to compute SubjectID", err.Error())
+		panic("Failed to compute SubjectID: " + err.Error())
 	}
 
 	return appSettings
-}
-
-func setDebugging(debug bool) {
-	Debugging = debug
-}
-
-func exitWithError(logger *charmlog.Logger, basicError, debugError string, spinnersToStop ...*tea.Program) {
-	if len(spinnersToStop) > 0 {
-		for _, s := range spinnersToStop {
-			if s != nil {
-				if err := s.ReleaseTerminal(); err != nil {
-					logger.Warn("Failed to release terminal from spinner")
-				}
-				s.Send(fmt.Errorf(basicError))
-				time.Sleep(100 * time.Millisecond)
-			}
-		}
-		time.Sleep(100 * time.Millisecond) // allow time for terminal to reset
-	}
-
-	if Debugging {
-		logger.Error(debugError)
-		panic(fmt.Errorf(debugError))
-	} else {
-		logger.Fatal(basicError)
-	}
 }

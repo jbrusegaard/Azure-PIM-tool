@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"app/azuClient"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/log"
 
 	terminal "golang.org/x/term"
 
@@ -68,7 +66,7 @@ func handle2FA(page playwright.Page) error {
 	return nil
 }
 
-func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *log.Logger, spinner *tea.Program) {
+func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 
 	pw, err := playwright.Run(
 		&playwright.RunOptions{
@@ -79,7 +77,7 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 		_ = pw.Stop()
 	}(pw)
 	if err != nil {
-		exitWithError(logger, "could not start Playwright", fmt.Sprintf("could not start Playwright: %s", err.Error()), spinner)
+		panic("could not start Playwright: " + err.Error())
 	}
 
 	var args = []string{
@@ -101,8 +99,6 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 		args = append(args, "--kiosk")
 	}
 
-	spinner.Send(UpdateMessageMsg{NewMessage: "Launching browser"})
-
 	browser, err := pw.Chromium.Launch(
 		playwright.BrowserTypeLaunchOptions{
 			Headless: &opts.Headless,
@@ -112,53 +108,45 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 	defer func(browser playwright.Browser, options ...playwright.BrowserCloseOptions) {
 		_ = browser.Close(options...)
 	}(browser)
-
 	if err != nil {
-		exitWithError(logger, "could not launch browser", fmt.Sprintf("could not launch browser: %s", err.Error()), spinner)
+		panic("could not launch browser: " + err.Error())
 	}
 
 	// We need to intercept the request when the user logs in to get their pim token
 	page, err := browser.NewPage()
 	if err != nil {
-		exitWithError(logger, "could not create page", fmt.Sprintf("could not create page: %s", err.Error()), spinner)
+		panic("could not create page: " + err.Error())
 	}
 
-	spinner.Send(UpdateMessageMsg{NewMessage: "Navigating to Azure portal"})
 	_, err = page.Goto(opts.AzurePortalURL)
 	if err != nil {
-		exitWithError(logger, fmt.Sprintf("could not goto %s", opts.AzurePortalURL), fmt.Sprintf("could not go to: %s: %s", opts.AzurePortalURL, err.Error()), spinner)
+		panic("could not goto: " + err.Error())
 	}
 
 	if opts.Username != "" && opts.Password != "" {
-		spinner.Send(UpdateMessageMsg{NewMessage: "Filling username"})
 		if err = page.Locator(userNameTextBox).Fill(opts.Username); err != nil {
-			exitWithError(logger, "could not fill username", fmt.Sprintf("could not fill username [%s]: %s", opts.Username, err.Error()), spinner)
+			panic(err)
 		}
 		if err = page.Locator(userNameSubmitButton).Click(); err != nil {
-			exitWithError(logger, "could not submit username", fmt.Sprintf("could not submit username [%s]: %s", opts.Username, err.Error()), spinner)
+			panic("could not press email: " + err.Error())
 		}
-
-		spinner.Send(UpdateMessageMsg{NewMessage: "Filling password"})
 		passwordLocator := page.GetByPlaceholder("Password")
 		err = passwordLocator.Fill(opts.Password)
 		if err != nil {
-			exitWithError(logger, "could not fill password", fmt.Sprintf("could not fill password: %s", err.Error()), spinner)
+			panic("could not fill password: " + err.Error())
 		}
 		err = passwordLocator.Press(enterButton)
 		if err != nil {
-			exitWithError(logger, "could not press password", fmt.Sprintf("could not press password: %s", err.Error()), spinner)
+			panic("could not press password: " + err.Error())
 		}
 
-		spinner.Send(UpdateMessageMsg{NewMessage: "Handling MFA"})
 		if opts.Headless {
 			err = handle2FA(page)
 			if err != nil {
-				exitWithError(logger, "could not handle 2FA", fmt.Sprintf("could not handle 2FA: %s", err.Error()), spinner)
+				panic("could not handle 2FA: " + err.Error())
 			}
 		}
 	}
-
-	spinner.Send(UpdateMessageMsg{NewMessage: "Waiting for dashboard"})
 
 	// Need to wait for user to auth and then go to the azure portal home page
 	err = page.WaitForURL(
@@ -167,10 +155,8 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions, logger *l
 		},
 	)
 	if err != nil {
-		exitWithError(logger, "could not wait for URL", "could not wait for URL: "+err.Error(), spinner)
+		panic("could not wait for URL: " + err.Error())
 	}
-
-	spinner.Send(UpdateMessageMsg{NewMessage: "Capturing session data"})
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
 		var apt azuClient.AzurePimToken

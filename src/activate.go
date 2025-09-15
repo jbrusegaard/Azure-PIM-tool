@@ -2,12 +2,10 @@ package src
 
 import (
 	"encoding/json"
-	"time"
 
 	"app/azuClient"
 	"app/constants"
 	"app/log"
-	spinner2 "github.com/charmbracelet/bubbles/spinner"
 )
 
 type ActivationOptions struct {
@@ -16,23 +14,17 @@ type ActivationOptions struct {
 	Reason      string
 	Duration    int      // Duration in hours
 	GroupNames  []string // Filter criteria for activation
-	Debug       bool
 }
 
 func ActivatePim(opts ActivationOptions) {
 	logger := log.InitializeLogger()
-	// Set debugging
-	setDebugging(opts.Debug)
-
 	appSettings := Initialize(logger, InitOpts{
 		Interactive: opts.Interactive,
 		Headless:    opts.Headless,
 	})
-
 	azureClient := azuClient.AzureClient{
 		AzurePimToken: appSettings.Session.AZPimToken,
 	}
-
 	eligibleRoleMap, err := azureClient.GetEligibleRoles(constants.AzurePimGroupApiUrlRoleAssignments)
 	if err != nil {
 		logger.Errorf("Error fetching eligible roles: %s", err)
@@ -41,26 +33,16 @@ func ActivatePim(opts ActivationOptions) {
 
 	if len(eligibleRoleMap) == 0 {
 		logger.Warn("No eligible roles found.")
-		return
 	}
-
-	spinner := StartSpinner("Activating Roles", spinner2.Points)
-	defer func() {
-		if err3 := spinner.ReleaseTerminal(); err3 != nil {
-			logger.Warn("Failed to release terminal from spinner")
-		}
-		spinner.Send(UpdateMessageMsg{Quitting: true})
-	}()
-
 	for _, groupName := range opts.GroupNames {
 		roleToActivate, found := eligibleRoleMap[groupName]
 
-		spinner.Send(UpdateMessageMsg{NewMessage: "Activating: " + groupName})
 		if !found {
-			logger.With("role", groupName).Warnf("Role not found in eligible roles, skipping activation")
+			logger.Warnf("No eligible group found with the specified name: %s", groupName)
 			continue
 		}
 
+		logger.With("role", roleToActivate.GetGroupName()).Info("Activating role")
 		requestBody := azuClient.BuildPimRequestBody(
 			roleToActivate,
 			opts.Reason,
@@ -79,12 +61,9 @@ func ActivatePim(opts ActivationOptions) {
 			} else {
 				logger.With("role", groupName).Error(err.Error())
 			}
-			continue
+			return
 		}
 		logger.With("role", roleToActivate.GetGroupName()).Info("Successfully activated role")
 	}
-
-	spinner.Send(UpdateMessageMsg{Quitting: true})
-	time.Sleep(300 * time.Millisecond) // allow time for terminal to reset
 
 }
