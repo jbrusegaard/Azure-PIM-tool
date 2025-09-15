@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/log"
 )
 
+var loggerInstance *log.Logger
+
 func InitializeLogger() *log.Logger {
 	// Initialize the logger with default settings
 	// This function can be expanded to include more complex initialization logic if needed
@@ -15,11 +17,29 @@ func InitializeLogger() *log.Logger {
 	styles.Keys["role"] = lipgloss.NewStyle().Foreground(lipgloss.Color("#f305f0")).Bold(true)
 	styles.Values["role"] = lipgloss.NewStyle().Bold(true)
 
+	styles.Levels[log.WarnLevel] = lipgloss.NewStyle().
+		SetString("WARN").
+		Foreground(lipgloss.Color("#F59C27"))
+
+	styles.Levels[log.FatalLevel] = lipgloss.NewStyle().
+		SetString("EXIT").
+		Bold(true).
+		Foreground(lipgloss.Color("#D41515"))
+
 	logger := log.New(os.Stdout)
 	logger.SetLevel(log.InfoLevel) // Set default log level
 	logger.SetTimeFormat("2006-01-02 15:04:05")
 
 	logger.SetStyles(styles)
 
+	loggerInstance = logger
+
 	return logger
+}
+
+func GetLogger() *log.Logger {
+	if loggerInstance == nil {
+		return InitializeLogger()
+	}
+	return loggerInstance
 }

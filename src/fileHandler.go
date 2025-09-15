@@ -1,11 +1,12 @@
 package src
 
 import (
-	"app/azuClient"
 	"encoding/json"
+	"fmt"
 	"os"
 
-	"github.com/charmbracelet/log"
+	"app/azuClient"
+	"app/log"
 )
 
 type SessionConfig struct {
@@ -16,7 +17,7 @@ type SessionConfig struct {
 func GetSessionConfig(filename string) SessionConfig {
 	data, err := GetOrCreateFile(filename, "{}")
 	if err != nil {
-		panic(err)
+		exitWithError(log.GetLogger(), "Could not get or create config file", err.Error())
 	}
 	var sessionConfig SessionConfig
 	err = json.Unmarshal(data, &sessionConfig)
@@ -37,21 +38,20 @@ func GetOrCreateFile(path string, defaultContent string) ([]byte, error) {
 		defer func(file *os.File) {
 			err := file.Close()
 			if err != nil {
-				log.Error(err.Error())
+				exitWithError(log.GetLogger(), "Could not close file", err.Error())
+				return
 			}
 		}(file)
 		// write default content to the file
 		if _, err = file.WriteString(defaultContent); err != nil {
-			log.Errorf("Error creating file: %s", err)
-			return []byte{}, err
+			return []byte{}, fmt.Errorf("could not write default content to file: %w", err)
 		}
 		return []byte(defaultContent), nil
 	} else {
 		// read the file contents
 		f, err2 := os.ReadFile(path)
 		if err2 != nil {
-			log.Errorf("Error reading file: %s", err2)
-			return []byte{}, err2
+			return []byte{}, fmt.Errorf("could not read file: %w", err2)
 		}
 		return f, nil
 	}
@@ -67,16 +67,15 @@ func FileExists(path string) bool {
 func WriteFileContents(path string, contents []byte) error {
 	err := os.WriteFile(path, contents, 0644)
 	if err != nil {
-		log.Errorf("Error writing to file: %s", err)
+		return fmt.Errorf("could not write to file: %w", err)
 	}
-	return err
+	return nil
 }
 
 func MarshalAndWriteFileContents(path string, contents any) error {
 	data, err := json.MarshalIndent(contents, "", "  ")
 	if err != nil {
-		log.Errorf("Error marshalling contents: %s", err)
-		return err
+		return fmt.Errorf("could not marshal contents: %w", err)
 	}
 	return WriteFileContents(path, data)
 }
@@ -87,7 +86,7 @@ func RemoveFile(path string) error {
 	}
 	err := os.Remove(path)
 	if err != nil {
-		log.Errorf("Error deleting file: %s", err)
+		return fmt.Errorf("could not delete file: %w", err)
 	}
 	return err
 }
@@ -95,8 +94,7 @@ func RemoveFile(path string) error {
 func CreateDirectoryStructure(path string) error {
 	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
-		log.Errorf("Error creating directory structure: %s", err)
-		return err
+		return fmt.Errorf("could not create directory structure: %w", err)
 	}
 	return nil
 }
