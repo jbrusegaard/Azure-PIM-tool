@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"time"
 
@@ -160,11 +161,17 @@ func LaunchBrowserToGetToken(appSettings AppSettings, opts PimOptions) {
 	sessionData := CaptureSessionData(page)
 	for _, session := range sessionData {
 		var apt azuClient.AzurePimToken
-		err := json.Unmarshal([]byte(session), &apt)
+		err = json.Unmarshal([]byte(session), &apt)
 		if err != nil {
 			continue
 		}
-		if apt.TokenType == "Bearer" && apt.CredentialType == "AccessToken" && apt.Secret != "" {
+		err = apt.ComputeAdditionalFields()
+		if err != nil {
+			continue
+		}
+		if apt.TokenType == "Bearer" && strings.HasPrefix(
+			apt.Audience, "https://management.core.windows.net/",
+		) && len(apt.Groups) > 0 {
 			appSettings.SavePIMToken(apt)
 			break
 		}

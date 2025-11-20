@@ -9,23 +9,27 @@ import (
 )
 
 type AzurePimToken struct {
-	CredentialType string `json:"credentialType"`
-	Secret         string `json:"secret"`
-	TokenType      string `json:"tokenType"`
-	ClientID       string `json:"clientId"`
-	Realm          string `json:"realm"`
-	ExpiresOn      string `json:"expiresOn"`
-	HomeAccountId  string `json:"homeAccountId"`
-	Target         string `json:"target"`
-	Environment    string `json:"environment"`
-	SubjectID      string `json:"subjectId"`
-	Email          string `json:"email"`
+	Audience       string   `json:"audience"`
+	ClientID       string   `json:"clientId"`
+	CredentialType string   `json:"credentialType"`
+	Email          string   `json:"email"`
+	Environment    string   `json:"environment"`
+	ExpiresOn      string   `json:"expiresOn"`
+	Groups         []string `json:"groups"`
+	HomeAccountId  string   `json:"homeAccountId"`
+	Realm          string   `json:"realm"`
+	Secret         string   `json:"secret"`
+	SubjectID      string   `json:"subjectId"`
+	Target         string   `json:"target"`
+	TokenType      string   `json:"tokenType"`
 }
 
 // AzureClaims represents the claims structure for Azure JWT tokens
 type AzureClaims struct {
-	ObjectID string `json:"oid"`   // Azure Object ID (may not always be present)
-	Email    string `json:"email"` // User email
+	Aud      string   `json:"aud"`
+	Email    string   `json:"email"` // User email
+	Groups   []string `json:"groups,omitempty"`
+	ObjectID string   `json:"oid"` // Azure Object ID (may not always be present)
 }
 
 func (apt *AzurePimToken) ComputeAdditionalFields() error {
@@ -38,12 +42,11 @@ func (apt *AzurePimToken) ComputeAdditionalFields() error {
 	// Manually decode the JWT token to extract claims without signature verification
 	// Split the JWT into parts (header.payload.signature)
 	logger.WithPrefix("JWT").Info("Decoding JWT token...")
-	logger.WithPrefix("JWT").Infof("JWT token found: %s***", apt.Secret[:3])
 	parts := strings.Split(apt.Secret, ".")
 	if len(parts) != 3 {
 		return fmt.Errorf("invalid JWT format: expected 3 parts, got %d", len(parts))
 	}
-
+	logger.WithPrefix("JWT").Infof("JWT token found: %s***", apt.Secret[:3])
 	// Decode the payload (claims) part
 	payload := parts[1]
 
@@ -66,8 +69,9 @@ func (apt *AzurePimToken) ComputeAdditionalFields() error {
 	if err := json.Unmarshal(decodedPayload, &claims); err != nil {
 		return fmt.Errorf("failed to unmarshal JWT claims: %v", err)
 	}
-
-	apt.SubjectID = claims.ObjectID
+	apt.Audience = claims.Aud
 	apt.Email = claims.Email
+	apt.Groups = claims.Groups
+	apt.SubjectID = claims.ObjectID
 	return nil
 }
